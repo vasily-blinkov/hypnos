@@ -89,6 +89,22 @@ BEGIN
 END
 GO
 
+-- Hypnos.Administration.User: seed.
+IF NOT EXISTS(SELECT * FROM Administration.[User] u WHERE u.ID = -32768)
+BEGIN
+	PRINT 'Creating user ''seed'' (password: seed).';
+	SET IDENTITY_INSERT Administration.[User] ON;
+	INSERT INTO Administration.[User](ID, FullName, LoginName, PasswordHash, CreatedBy, UpdatedBy)
+	VALUES(
+		-32768, N'Seed', N'seed',
+		N'7cf2e5730cdea22f7c2f6e8fb926ff738464b20ec61a5b8a1c83f4facecdae306f29a2b768522d5cf0f367747f30ce39c74863278fae6c27e17ce9e30b6ccbd9',
+		-32768, -32768
+	);
+	SET IDENTITY_INSERT Administration.[User] OFF;
+END
+GO
+
+
 -- Hypnos.Administration.Role.
 IF OBJECT_ID('Administration.Role') IS NULL
 BEGIN
@@ -106,6 +122,39 @@ BEGIN
 END
 GO
 
+-- Hypnos.Administration.Role: Администратор.
+IF NOT EXISTS(SELECT * FROM Administration.[Role] r WHERE r.ID = -32768)
+BEGIN
+	PRINT 'Creating role ''Администратор''.';
+	SET IDENTITY_INSERT Administration.[Role] ON;
+	INSERT INTO Administration.[Role](ID, Name, CreatedBy, UpdatedBy)
+	VALUES(-32768, N'Администратор', -32768, -32768);
+	SET IDENTITY_INSERT Administration.[User] OFF;
+END
+GO
+
+-- Hypnos.Administration.Role: Руководитель.
+IF NOT EXISTS(SELECT * FROM Administration.[Role] u WHERE u.ID = -32767)
+BEGIN
+	PRINT 'Creating role ''Руководитель''.';
+	SET IDENTITY_INSERT Administration.[Role] ON;
+	INSERT INTO Administration.[Role](ID, Name, CreatedBy, UpdatedBy)
+	VALUES(-32767, N'Руководитель', -32768, -32768);
+	SET IDENTITY_INSERT Administration.[User] OFF;
+END
+GO
+
+-- Hypnos.Administration.Role: Специалист.
+IF NOT EXISTS(SELECT * FROM Administration.[Role] u WHERE u.ID = -32766)
+BEGIN
+	PRINT 'Creating role ''Специалист''.';
+	SET IDENTITY_INSERT Administration.[Role] ON;
+	INSERT INTO Administration.[Role](ID, Name, CreatedBy, UpdatedBy)
+	VALUES(-32766, N'Специалист', -32768, -32768);
+	SET IDENTITY_INSERT Administration.[User] OFF;
+END
+GO
+
 -- Hypnos.Administration.UserRole.
 IF OBJECT_ID('Administration.UserRole') IS NULL
 BEGIN
@@ -120,6 +169,15 @@ BEGIN
 		IsDeleted Flag DEFAULT 0 NOT NULL,
 		PRIMARY KEY (UserID, RoleID)
 	);
+END
+GO
+
+-- Granting role Администратор to user 'seed'.
+IF NOT EXISTS(SELECT * FROM Administration.UserRole ur WHERE ur.UserID = -32768 AND ur.RoleID = -32768)
+BEGIN
+	PRINT 'Granting role ''Администратор'' to user ''seed''.'
+	INSERT INTO Administration.UserRole(UserID, RoleID, CreatedBy, UpdatedBy)
+	VALUES(-32768, -32768, -32768, -32768);
 END
 GO
 
@@ -234,19 +292,7 @@ END
 GO
 
 /*
-SET IDENTITY_INSERT Administration.[User] ON;
 
-INSERT INTO Administration.[User](ID, FullName, LoginName, PasswordHash, CreatedBy, UpdatedBy)
-VALUES(
-	-32768,
-	N'Seed',
-	N'Seed',
-	N'7cf2e5730cdea22f7c2f6e8fb926ff738464b20ec61a5b8a1c83f4facecdae306f29a2b768522d5cf0f367747f30ce39c74863278fae6c27e17ce9e30b6ccbd9',
-	-32768,
-	-32768
-);
-
-SET IDENTITY_INSERT Administration.[User] OFF;
 */
 
 
