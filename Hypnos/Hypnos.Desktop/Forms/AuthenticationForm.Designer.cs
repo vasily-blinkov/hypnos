@@ -1,4 +1,4 @@
-﻿namespace Hypnos.Desktop
+﻿namespace Hypnos.Desktop.Forms
 {
     partial class AuthenticationForm
     {

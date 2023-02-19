@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Windows.Forms;
+using Hypnos.Desktop.Forms;
 
 namespace Hypnos.Desktop
 {

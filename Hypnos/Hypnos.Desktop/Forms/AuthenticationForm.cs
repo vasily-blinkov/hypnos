@@ -1,6 +1,6 @@
 ﻿using System.Windows.Forms;
 
-namespace Hypnos.Desktop
+namespace Hypnos.Desktop.Forms
 {
     public partial class AuthenticationForm : Form
     {
