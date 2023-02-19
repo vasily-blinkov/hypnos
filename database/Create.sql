@@ -1,16 +1,279 @@
--- This script creates an empty Hypnos database.
-
--- You can set values of the variables below to customize the database.
-DECLARE @database_name NVARCHAR(10) = N'Hypnos';
-
--- Variables for internal usage.
-DECLARE @sql_string NVARCHAR(500);
+-- This scripts creates the Hypnos database.
 
 USE [master];
 
-IF DB_ID(@database_name) IS NULL
+-- Hypnos.
+-- USE master; DROP DATABASE Hypnos;
+IF DB_ID('Hypnos') IS NULL
 BEGIN
-	PRINT N'Creating database ''' + @database_name + '''';
-	SET @sql_string = N'CREATE DATABASE ' + @database_name;
-	EXECUTE sp_executesql @sql_string;
+	PRINT N'Creating database ''Hypnos''';
+	EXEC ('CREATE DATABASE Hypnos COLLATE Cyrillic_General_CI_AS');
 END
+GO
+
+USE [Hypnos];
+
+-- Data Type: Name.
+IF TYPE_ID('dbo.Name') IS NULL
+BEGIN
+	PRINT N'Creating type ''Name''.';
+	CREATE TYPE dbo.Name FROM nvarchar(100);
+END
+GO
+
+-- Data Type: Description.
+IF TYPE_ID('dbo.Description') IS NULL
+BEGIN
+	PRINT N'Creating type ''Description''.';
+	CREATE TYPE dbo.Description FROM nvarchar(MAX);
+END
+GO
+
+-- Data Type: Flag.
+IF TYPE_ID('dbo.Flag') IS NULL
+BEGIN
+	PRINT N'Creating type ''Flag''.';
+	CREATE TYPE dbo.Flag FROM BIT;
+END
+GO
+
+-- Data Type: Color.
+IF TYPE_ID('dbo.Color') IS NULL
+BEGIN
+	PRINT N'Creating type ''Color''.';
+	CREATE TYPE dbo.Color FROM nvarchar(6);
+	EXEC sp_addextendedproperty
+		@name = N'MS_Description', @value = N'HEX color code without leading #',
+		@level0type = N'SCHEMA', @level0name = N'dbo',
+		@level1type = N'TYPE', @level1name = N'Color';
+END
+GO
+
+-- Data Type: Emoji.
+IF TYPE_ID('dbo.Emoji') IS NULL
+BEGIN
+	PRINT N'Creating type ''Emoji''.';
+	CREATE TYPE dbo.Emoji FROM nvarchar(1);
+END
+GO
+
+-- Hypnos.Administration.
+IF SCHEMA_ID('Administration') IS NULL
+BEGIN
+	PRINT N'Creating schema ''Administration''.';
+	EXEC (N'CREATE SCHEMA Administration');
+END
+GO
+
+-- Hypnos.Administration.User.
+IF OBJECT_ID('Administration.User') IS NULL
+BEGIN
+	PRINT N'Creating table ''User''.'
+	CREATE TABLE Administration.[User] (
+		ID smallint IDENTITY(-32768, 1) PRIMARY KEY NOT NULL,
+		FullName Name NOT NULL,
+		LoginName Name NOT NULL,
+		PasswordHash nvarchar(128) NOT NULL,
+		Description Description,
+		CreatedBy smallint FOREIGN KEY REFERENCES Administration.[User](ID) NOT NULL,
+		CreatedDate datetime DEFAULT GETDATE() NOT NULL,
+		UpdatedBy smallint FOREIGN KEY REFERENCES Administration.[User](ID) NOT NULL,
+		UpdatedDate datetime DEFAULT GETDATE() NOT NULL,
+		IsDeleted Flag DEFAULT 0 NOT NULL
+	);
+	EXEC sp_addextendedproperty
+		@name = N'MS_Description', @value = N'SHA2-512',
+		@level0type = N'SCHEMA',   @level0name = N'Administration',
+		@level1type = N'TABLE',    @level1name = N'User',
+		@level2type = N'COLUMN',   @level2name = N'PasswordHash';
+END
+GO
+
+-- Hypnos.Administration.Role.
+IF OBJECT_ID('Administration.Role') IS NULL
+BEGIN
+	PRINT N'Creating table ''Role''.'
+	CREATE TABLE Administration.[Role] (
+		ID smallint IDENTITY(-32768, 1) PRIMARY KEY NOT NULL,
+		Name Name NOT NULL,
+		Description Description,
+		CreatedBy smallint FOREIGN KEY REFERENCES Administration.[User](ID) NOT NULL,
+		CreatedDate datetime DEFAULT GETDATE() NOT NULL,
+		UpdatedBy smallint FOREIGN KEY REFERENCES Administration.[User](ID) NOT NULL,
+		UpdatedDate datetime DEFAULT GETDATE() NOT NULL,
+		IsDeleted Flag DEFAULT 0 NOT NULL
+	);
+END
+GO
+
+-- Hypnos.Administration.UserRole.
+IF OBJECT_ID('Administration.UserRole') IS NULL
+BEGIN
+	PRINT N'Creating table ''UserRole''.'
+	CREATE TABLE Administration.UserRole (
+		UserID smallint FOREIGN KEY REFERENCES Administration.[User](ID) NOT NULL,
+		RoleID smallint FOREIGN KEY REFERENCES Administration.[Role](ID) NOT NULL,
+		CreatedBy smallint FOREIGN KEY REFERENCES Administration.[User](ID) NOT NULL,
+		CreatedDate datetime DEFAULT GETDATE() NOT NULL,
+		UpdatedBy smallint FOREIGN KEY REFERENCES Administration.[User](ID) NOT NULL,
+		UpdatedDate datetime DEFAULT GETDATE() NOT NULL,
+		IsDeleted Flag DEFAULT 0 NOT NULL,
+		PRIMARY KEY (UserID, RoleID)
+	);
+END
+GO
+
+-- Hypnos.Management.
+IF SCHEMA_ID('Management') IS NULL
+BEGIN
+	PRINT N'Creating schema ''Management''.';
+	EXEC (N'CREATE SCHEMA Management');
+END
+GO
+
+-- Hypnos.Management.Workflow.
+IF OBJECT_ID('Management.Workflow') IS NULL
+BEGIN
+	PRINT N'Creating table ''Workflow''.'
+	CREATE TABLE Management.Workflow (
+		ID smallint IDENTITY(-32768, 1) PRIMARY KEY NOT NULL,
+		Name Name NOT NULL,
+		Description Description,
+		Color Color DEFAULT N'f026a5' NOT NULL,
+		CreatedBy smallint FOREIGN KEY REFERENCES Administration.[User](ID) NOT NULL,
+		CreatedDate datetime DEFAULT GETDATE() NOT NULL,
+		UpdatedBy smallint FOREIGN KEY REFERENCES Administration.[User](ID) NOT NULL,
+		UpdatedDate datetime DEFAULT GETDATE() NOT NULL,
+		IsDeleted Flag DEFAULT 0 NOT NULL
+	);
+END
+GO
+
+-- Hypnos.Management.WorkflowItem.
+IF OBJECT_ID('Management.WorkflowItem') IS NULL
+BEGIN
+	PRINT N'Creating table ''WorkflowItem''.'
+	CREATE TABLE Management.WorkflowItem (
+		ID smallint IDENTITY(-32768, 1) PRIMARY KEY NOT NULL,
+		WorkflowID smallint FOREIGN KEY REFERENCES Management.Workflow(ID) NOT NULL,
+		ParentWorkflowItemID smallint FOREIGN KEY REFERENCES Management.WorkflowItem(ID),
+		Name Name NOT NULL,
+		Description Description,
+		Emoji Emoji DEFAULT NCHAR(0x26D3) NOT NULL,
+		CreatedBy smallint FOREIGN KEY REFERENCES Administration.[User](ID) NOT NULL,
+		CreatedDate datetime DEFAULT GETDATE() NOT NULL,
+		UpdatedBy smallint FOREIGN KEY REFERENCES Administration.[User](ID) NOT NULL,
+		UpdatedDate datetime DEFAULT GETDATE() NOT NULL,
+		IsDeleted Flag DEFAULT 0 NOT NULL
+	);
+END
+GO
+
+-- Hypnos.Management.Status.
+IF OBJECT_ID('Management.Status') IS NULL
+BEGIN
+	PRINT N'Creating table ''Status''.'
+	CREATE TABLE Management.Status (
+		ID smallint IDENTITY(-32768, 1) PRIMARY KEY NOT NULL,
+		Name Name NOT NULL,
+		Description Description,
+		CreatedBy smallint FOREIGN KEY REFERENCES Administration.[User](ID) NOT NULL,
+		CreatedDate datetime DEFAULT GETDATE() NOT NULL,
+		UpdatedBy smallint FOREIGN KEY REFERENCES Administration.[User](ID) NOT NULL,
+		UpdatedDate datetime DEFAULT GETDATE() NOT NULL,
+		IsDeleted Flag DEFAULT 0 NOT NULL
+	);
+END
+GO
+
+-- Hypnos.Management.WorkflowItemStatus.
+IF OBJECT_ID('Management.WorkflowItemStatus') IS NULL
+BEGIN
+	PRINT N'Creating table ''WorkflowItemStatus''.'
+	CREATE TABLE Management.WorkflowItemStatus (
+		WorkflowItemID smallint FOREIGN KEY REFERENCES Management.WorkflowItem(ID) NOT NULL,
+		StatusID smallint FOREIGN KEY REFERENCES Management.Status(ID) NOT NULL,
+		Description Description,
+		CreatedBy smallint FOREIGN KEY REFERENCES Administration.[User](ID) NOT NULL,
+		CreatedDate datetime DEFAULT GETDATE() NOT NULL,
+		UpdatedBy smallint FOREIGN KEY REFERENCES Administration.[User](ID) NOT NULL,
+		UpdatedDate datetime DEFAULT GETDATE() NOT NULL,
+		IsDeleted Flag DEFAULT 0 NOT NULL,
+		PRIMARY KEY (WorkflowItemID, StatusID)
+	);
+END
+GO
+
+-- Hypnos.Workload.
+IF SCHEMA_ID('Workload') IS NULL
+BEGIN
+	PRINT N'Creating schema ''Workload''.';
+	EXEC (N'CREATE SCHEMA Workload');
+END
+GO
+
+-- Hypnos.Workload.WorkItem.
+IF OBJECT_ID('Workload.WorkItem') IS NULL
+BEGIN
+	PRINT N'Creating table ''WorkItem''.'
+	CREATE TABLE Workload.WorkItem (
+		ID smallint IDENTITY(-32768, 1) PRIMARY KEY NOT NULL,
+		WorkflowItemID smallint FOREIGN KEY REFERENCES Management.WorkflowItem(ID) NOT NULL,
+		ParentWorkItemID smallint FOREIGN KEY REFERENCES Workload.WorkItem(ID),
+		StatusID smallint FOREIGN KEY REFERENCES Management.Status(ID) NOT NULL,
+		AssigneeID smallint FOREIGN KEY REFERENCES Administration.[User](ID),
+		Name Name NOT NULL,
+		Description Description,
+		CreatedBy smallint FOREIGN KEY REFERENCES Administration.[User](ID) NOT NULL,
+		CreatedDate datetime DEFAULT GETDATE() NOT NULL,
+		UpdatedBy smallint FOREIGN KEY REFERENCES Administration.[User](ID) NOT NULL,
+		UpdatedDate datetime DEFAULT GETDATE() NOT NULL,
+		IsDeleted Flag DEFAULT 0 NOT NULL
+	);
+END
+GO
+
+/*
+SET IDENTITY_INSERT Administration.[User] ON;
+
+INSERT INTO Administration.[User](ID, FullName, LoginName, PasswordHash, CreatedBy, UpdatedBy)
+VALUES(
+	-32768,
+	N'Seed',
+	N'Seed',
+	N'7cf2e5730cdea22f7c2f6e8fb926ff738464b20ec61a5b8a1c83f4facecdae306f29a2b768522d5cf0f367747f30ce39c74863278fae6c27e17ce9e30b6ccbd9',
+	-32768,
+	-32768
+);
+
+SET IDENTITY_INSERT Administration.[User] OFF;
+*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
