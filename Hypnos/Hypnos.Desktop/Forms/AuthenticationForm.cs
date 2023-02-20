@@ -1,4 +1,6 @@
-﻿using System.Windows.Forms;
+﻿using Hypnos.Desktop.Repositories;
+using System.Configuration;
+using System.Windows.Forms;
 
 namespace Hypnos.Desktop.Forms
 {
@@ -23,8 +25,22 @@ namespace Hypnos.Desktop.Forms
         /// </summary>
         private void CheckLogin(object sender, LinkLabelLinkClickedEventArgs e)
         {
-            authenticationTabs.TabPages.Add(passwordTab);
-            authenticationTabs.TabPages.Remove(loginTab);
+            bool loginExists;
+
+            using (var repository = new AuthRepository())
+            {
+                loginExists = repository.CheckLogin(loginBox.Text);
+            }
+
+            if (checkLoginLink.Enabled = loginExists)
+            {
+                authenticationTabs.TabPages.Add(passwordTab);
+                authenticationTabs.TabPages.Remove(loginTab);
+            }
+            else
+            {
+                checkLoginLink.Text = "Логин не найден";
+            }
         }
 
         /// <summary>
