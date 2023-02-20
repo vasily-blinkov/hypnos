@@ -72,7 +72,7 @@ BEGIN
 	CREATE TABLE Administration.[User] (
 		ID smallint IDENTITY(-32768, 1) PRIMARY KEY NOT NULL,
 		FullName Name NOT NULL,
-		LoginName Name NOT NULL,
+		LoginName Name NOT NULL/* UNIQUE*/,
 		PasswordHash nvarchar(128) NOT NULL,
 		Description Description,
 		CreatedBy smallint FOREIGN KEY REFERENCES Administration.[User](ID) NOT NULL,
@@ -300,9 +300,22 @@ END
 GO
 
 -- Function: Hypnos.Auth.DoesLoginExist.
+PRINT N'Creating of altering function ''DoesLoginExist''';
+CREATE OR ALTER FUNCTION Auth.DoesLoginExist(@login_name Name) RETURNS bit
+BEGIN
+	DECLARE @exists bit;
+	SELECT @exists = IIF(COUNT(1) > 0, 1, 0) FROM Administration.[User] u
+		WHERE u.LoginName = @login_name;
+	RETURN @exists;
+END
+GO
+
 
 /*
+SELECT Auth.DoesLoginExist(N'seed')
+SELECT Auth.DoesLoginExist(N'nobody')
 
+select iif(2 > 0, 1, 0)
 */
 
 
