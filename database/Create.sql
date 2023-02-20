@@ -291,6 +291,16 @@ BEGIN
 END
 GO
 
+-- Hypnos.Auth.
+IF SCHEMA_ID('Auth') IS NULL
+BEGIN
+	PRINT N'Creating schema ''Auth''.';
+	EXEC (N'CREATE SCHEMA Auth');
+END
+GO
+
+-- Function: Hypnos.Auth.DoesLoginExist.
+
 /*
 
 */
