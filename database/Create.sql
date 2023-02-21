@@ -93,11 +93,12 @@ GO
 IF NOT EXISTS(SELECT * FROM Administration.[User] u WHERE u.ID = -32768)
 BEGIN
 	PRINT 'Creating user ''seed'' (password: seed).';
+	DECLARE @password_salt nvarchar(20) = N'woTdzTfu5VUxUjtnr8fJ';
 	SET IDENTITY_INSERT Administration.[User] ON;
 	INSERT INTO Administration.[User](ID, FullName, LoginName, PasswordHash, CreatedBy, UpdatedBy)
 	VALUES(
 		-32768, N'Seed', N'seed',
-		N'7cf2e5730cdea22f7c2f6e8fb926ff738464b20ec61a5b8a1c83f4facecdae306f29a2b768522d5cf0f367747f30ce39c74863278fae6c27e17ce9e30b6ccbd9',
+		CONVERT(nvarchar(128), HashBytes('sha2_512', @password_salt + 'seed'), 2),
 		-32768, -32768
 	);
 	SET IDENTITY_INSERT Administration.[User] OFF;
@@ -299,23 +300,71 @@ BEGIN
 END
 GO
 
+-- Hypnos.Auth.Session.
+IF OBJECT_ID('Auth.Session') IS NULL
+BEGIN
+	PRINT N'Creating table ''Session''.'
+	CREATE TABLE Auth.Session (
+		ID bigint/*uniqueidentifier*/ IDENTITY(-9223372036854775808, 1) PRIMARY KEY NOT NULL,
+		Token nvarchar(128) NOT NULL,
+		UserID smallint FOREIGN KEY REFERENCES Administration.[User](ID),
+		UpdatedDate datetime DEFAULT GETDATE() NOT NULL
+	);
+END
+GO
+
 -- Function: Hypnos.Auth.DoesLoginExist.
 PRINT N'Creating of altering function ''DoesLoginExist''';
 CREATE OR ALTER FUNCTION Auth.DoesLoginExist(@login_name Name) RETURNS bit
 BEGIN
 	DECLARE @exists bit;
-	SELECT @exists = IIF(COUNT(1) > 0, 1, 0) FROM Administration.[User] u
+	SELECT @exists = IIF(COUNT(1) = 1, 1, 0) FROM Administration.[User] u
 		WHERE u.LoginName = @login_name;
 	RETURN @exists;
 END
 GO
 
+-- Function: Hypnos.Auth.Authenticate.
+PRINT N'Creating of altering function ''Authenticate''';
+CREATE OR ALTER PROCEDURE Auth.Authenticate 
+	@login_name Name,
+	@password_hash nvarchar(128),
+	@token nvarchar(128) OUTPUT
+AS BEGIN
+	SET NOCOUNT ON; -- for output parameters to be returned to outside
+	DECLARE @expected_password_hash nvarchar(128);
+	DECLARE @user_id smallint;
+	SELECT @expected_password_hash = u.PasswordHash, @user_id = u.ID
+		FROM Administration.[User] u WHERE u.LoginName = @login_name;
+	IF @expected_password_hash IS NOT NULL AND @expected_password_hash = @password_hash
+	BEGIN
+		DECLARE @token_salt nvarchar(20) = N'CjWvXV7ZXtHDPyH8y4LV';
+		DECLARE @date datetime = GETDATE();
+		DECLARE @result nvarchar(128) = CONVERT(nvarchar(128), HashBytes('SHA2_512',
+			@token_salt
+			+ CONVERT(nvarchar(6), @user_id)
+			+ CONVERT(nvarchar(26), @date, 9)), 2);
+		INSERT INTO Auth.[Session] (Token, UserID, UpdatedDate)
+			VALUES (@result, @user_id, @date);
+		SELECT @token = @result;
+	END
+END
+GO
 
 /*
-SELECT Auth.DoesLoginExist(N'seed')
-SELECT Auth.DoesLoginExist(N'nobody')
+select CONVERT(nvarchar(128), HashBytes('sha2_512', N'woTdzTfu5VUxUjtnr8fJ' + 'seed'), 2)
+print N'a' + null + N'c'
 
-select iif(2 > 0, 1, 0)
+print N'';
+declare @password_hash nvarchar(128);
+declare @result nvarchar(128);
+select @password_hash = CONVERT(nvarchar(128), HashBytes('sha2_512', N'woTdzTfu5VUxUjtnr8fJ' + 'seed'), 2);
+exec auth.authenticate
+	@login_name = N'seed',
+	@password_hash = @password_hash,
+	--@password_hash = N'wrong',
+	@token = @result output;
+print N'Token: ' + @result + N'.';
 */
 
 
