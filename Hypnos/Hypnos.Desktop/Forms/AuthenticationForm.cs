@@ -83,6 +83,7 @@ namespace Hypnos.Desktop.Forms
 
             if (checkPasswordLink.Enabled = !string.IsNullOrWhiteSpace(token))
             {
+                AuthenticationUtility.Token = token;
             }
             else
             {
