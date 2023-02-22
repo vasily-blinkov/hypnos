@@ -307,7 +307,7 @@ BEGIN
 	CREATE TABLE Auth.Session (
 		ID bigint/*uniqueidentifier*/ IDENTITY(-9223372036854775808, 1) PRIMARY KEY NOT NULL,
 		Token nvarchar(128) NOT NULL,
-		UserID smallint FOREIGN KEY REFERENCES Administration.[User](ID),
+		UserID smallint FOREIGN KEY REFERENCES Administration.[User](ID) NOT NULL,
 		UpdatedDate datetime DEFAULT GETDATE() NOT NULL
 	);
 END
@@ -340,13 +340,12 @@ AS BEGIN
 	BEGIN
 		DECLARE @token_salt nvarchar(20) = N'CjWvXV7ZXtHDPyH8y4LV';
 		DECLARE @date datetime = GETDATE();
-		DECLARE @result nvarchar(128) = CONVERT(nvarchar(128), HashBytes('SHA2_512',
+		SET @token = CONVERT(nvarchar(128), HashBytes('SHA2_512',
 			@token_salt
 			+ CONVERT(nvarchar(6), @user_id)
 			+ CONVERT(nvarchar(26), @date, 9)), 2);
 		INSERT INTO Auth.[Session] (Token, UserID, UpdatedDate)
-			VALUES (@result, @user_id, @date);
-		SELECT @token = @result;
+			VALUES (@token, @user_id, @date);
 	END
 END
 GO
@@ -358,7 +357,7 @@ print N'a' + null + N'c'
 print N'';
 declare @password_hash nvarchar(128);
 declare @result nvarchar(128);
-select @password_hash = CONVERT(nvarchar(128), HashBytes('sha2_512', N'woTdzTfu5VUxUjtnr8fJ' + 'seed'), 2);
+select @password_hash = CONVERT(nvarchar(128), HashBytes('sha2_512', N'woTdzTfu5VUxUjtnr8fJ' + N'seed'), 2);
 exec auth.authenticate
 	@login_name = N'seed',
 	@password_hash = @password_hash,
