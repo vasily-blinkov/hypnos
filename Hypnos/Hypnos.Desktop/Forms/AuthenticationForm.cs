@@ -74,9 +74,19 @@ namespace Hypnos.Desktop.Forms
 
         private void CheckPassword(object sender, LinkLabelLinkClickedEventArgs e)
         {
+            string token = string.Empty;
+
             using (var repository = new AuthRepository())
             {
-                repository.Authenticate(loginBox.Text, HashUtility.HashPassword(passwordBox.Text));
+                token = repository.Authenticate(loginBox.Text, HashUtility.HashPassword(passwordBox.Text));
+            }
+
+            if (checkPasswordLink.Enabled = !string.IsNullOrWhiteSpace(token))
+            {
+            }
+            else
+            {
+                checkPasswordLink.Text = "Пароль не верен";
             }
         }
     }

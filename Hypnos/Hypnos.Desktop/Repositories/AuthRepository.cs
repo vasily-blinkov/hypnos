@@ -1,4 +1,5 @@
-﻿using System.Data;
+﻿using System;
+using System.Data;
 using System.Data.SqlClient;
 
 namespace Hypnos.Desktop.Repositories
@@ -22,13 +23,15 @@ namespace Hypnos.Desktop.Repositories
 
         public string Authenticate(string loginName, string passwordHash)
         {
-            const string token = "@token";
+            const string tokenName = "@token";
 
-            return (string)Execute("Auth.Authenticate",
+            var tokenValue = Execute("Auth.Authenticate",
                 new SqlParameter { ParameterName = "@login_name", Value = loginName },
                 new SqlParameter { ParameterName = "@password_hash", Value = passwordHash },
-                new SqlParameter { ParameterName = token, Direction = ParameterDirection.Output, Size = 128 }
-            )[token].Value;
+                new SqlParameter { ParameterName = tokenName, Direction = ParameterDirection.Output, Size = 128 }
+            )[tokenName].Value;
+
+            return tokenValue == DBNull.Value ? string.Empty : (string)tokenValue;
         }
     }
 }
