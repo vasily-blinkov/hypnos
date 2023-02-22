@@ -36,7 +36,7 @@
             this.passwordTab = new System.Windows.Forms.TabPage();
             this.backLabel = new System.Windows.Forms.LinkLabel();
             this.checkPasswordLink = new System.Windows.Forms.LinkLabel();
-            this.maskedTextBox1 = new System.Windows.Forms.MaskedTextBox();
+            this.passwordBox = new System.Windows.Forms.MaskedTextBox();
             this.authenticationTable = new System.Windows.Forms.TableLayoutPanel();
             this.cancelLink = new System.Windows.Forms.LinkLabel();
             this.authenticationTabs.SuspendLayout();
@@ -100,7 +100,7 @@
             // 
             this.passwordTab.Controls.Add(this.backLabel);
             this.passwordTab.Controls.Add(this.checkPasswordLink);
-            this.passwordTab.Controls.Add(this.maskedTextBox1);
+            this.passwordTab.Controls.Add(this.passwordBox);
             this.passwordTab.Location = new System.Drawing.Point(4, 22);
             this.passwordTab.Name = "passwordTab";
             this.passwordTab.Padding = new System.Windows.Forms.Padding(3);
@@ -138,18 +138,19 @@
             this.checkPasswordLink.TabStop = true;
             this.checkPasswordLink.Text = "Введите пароль";
             this.checkPasswordLink.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.checkPasswordLink.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.CheckPassword);
             // 
-            // maskedTextBox1
+            // passwordBox
             // 
-            this.maskedTextBox1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            this.passwordBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.maskedTextBox1.Location = new System.Drawing.Point(6, 5);
-            this.maskedTextBox1.Mask = "CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC";
-            this.maskedTextBox1.Name = "maskedTextBox1";
-            this.maskedTextBox1.PasswordChar = '●';
-            this.maskedTextBox1.Size = new System.Drawing.Size(306, 20);
-            this.maskedTextBox1.TabIndex = 2;
-            this.maskedTextBox1.TextChanged += new System.EventHandler(this.ValidatePassword);
+            this.passwordBox.Location = new System.Drawing.Point(6, 5);
+            this.passwordBox.Mask = "CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC";
+            this.passwordBox.Name = "passwordBox";
+            this.passwordBox.PasswordChar = '●';
+            this.passwordBox.Size = new System.Drawing.Size(306, 20);
+            this.passwordBox.TabIndex = 2;
+            this.passwordBox.TextChanged += new System.EventHandler(this.ValidatePassword);
             // 
             // authenticationTable
             // 
@@ -215,7 +216,7 @@
         private System.Windows.Forms.MaskedTextBox loginBox;
         private System.Windows.Forms.LinkLabel backLabel;
         private System.Windows.Forms.LinkLabel checkPasswordLink;
-        private System.Windows.Forms.MaskedTextBox maskedTextBox1;
+        private System.Windows.Forms.MaskedTextBox passwordBox;
     }
 }
 

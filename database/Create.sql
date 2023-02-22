@@ -351,8 +351,9 @@ END
 GO
 
 /*
-select CONVERT(nvarchar(128), HashBytes('sha2_512', N'woTdzTfu5VUxUjtnr8fJ' + 'seed'), 2)
-print N'a' + null + N'c'
+select CONVERT(nvarchar(128), HashBytes('sha2_512', N'woTdzTfu5VUxUjtnr8fJ' + N'seed'), 2)
+select CONVERT(nvarchar(128), HashBytes('sha2_512', N'woTdzTfu5VUxUjtnr8fJ' + N'seed'), 2)
+select (HashBytes('sha2_512', N'woTdzTfu5VUxUjtnr8fJ' + N'seed'))
 
 print N'';
 declare @password_hash nvarchar(128);

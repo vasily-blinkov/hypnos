@@ -26,18 +26,13 @@ namespace Hypnos.Desktop.Repositories
             connection.Dispose();
         }
 
-        protected T Execute<T>(string procedureName, SqlDbType returns, IEnumerable<Parameter> parameters = null)
+        protected SqlParameterCollection Execute(string procedureName, params SqlParameter[] parameters)
         {
             using (var command = new SqlCommand(procedureName, connection) { CommandType = CommandType.StoredProcedure })
             {
-                command.Parameters.Add("@result", returns).Direction = ParameterDirection.ReturnValue;
-
                 if ((parameters?.Any()).GetValueOrDefault())
                 {
-                    foreach (var parameter in parameters)
-                    {
-                        command.Parameters.AddWithValue(parameter.Name, parameter.Value);
-                    }
+                    command.Parameters.AddRange(parameters);
                 }
 
                 if (connection.State != ConnectionState.Open)
@@ -46,8 +41,7 @@ namespace Hypnos.Desktop.Repositories
                 }
 
                 command.ExecuteScalar();
-
-                return (T)command.Parameters["@result"].Value;
+                return command.Parameters;
             }
         }
     }
