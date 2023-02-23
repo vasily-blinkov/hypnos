@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Windows.Forms;
 using Hypnos.Desktop.Forms;
 using Hypnos.Desktop.Repositories;
@@ -17,11 +18,32 @@ namespace Hypnos.Desktop
         [STAThread]
         static void Main()
         {
+            Setup();
+            Start();
+        }
+
+        private static void Setup()
+        {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
+        }
 
+        private static void Start()
+        {
+            SubscribeExceptionHandler();
+            CleanupSessions();
             new AuthenticationForm().ShowDialog();
             Application.Run(ParentForm);
+        }
+
+        private static void SubscribeExceptionHandler()
+        {
+            AppDomain.CurrentDomain.UnhandledException += HandleUnhandledException;
+        }
+
+        private static void HandleUnhandledException(object sender, UnhandledExceptionEventArgs e)
+        {
+            ExceptionsUtility.Handle((Exception)e.ExceptionObject, e.IsTerminating);
         }
 
         private static ParentForm CreateParentForm()
@@ -34,6 +56,13 @@ namespace Hypnos.Desktop
         public static void Exit()
         {
             LogOut();
+            CleanupSessions();
+
+            ExitSafe();
+        }
+
+        public static void ExitSafe()
+        {
             Application.Exit();
         }
 
@@ -47,6 +76,14 @@ namespace Hypnos.Desktop
             using (var repository = new AuthRepository())
             {
                 repository.LogOut(AuthenticationUtility.Token);
+            }
+        }
+
+        private static void CleanupSessions()
+        {
+            using (var repository = new AuthRepository())
+            {
+                repository.CleanupSessions();
             }
         }
     }

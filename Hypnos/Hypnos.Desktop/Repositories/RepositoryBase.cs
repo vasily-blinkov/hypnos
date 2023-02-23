@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Hypnos.Desktop.Utils;
+using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
@@ -44,7 +45,15 @@ namespace Hypnos.Desktop.Repositories
                     connection.Open();
                 }
 
-                command.ExecuteScalar();
+                try
+                {
+                    command.ExecuteScalar();
+                }
+                catch (SqlException ex)
+                {
+                    ExceptionsUtility.Handle(ex);
+                }
+
                 return command.Parameters;
             }
         }
