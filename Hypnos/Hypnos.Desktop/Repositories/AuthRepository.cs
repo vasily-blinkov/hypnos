@@ -33,5 +33,12 @@ namespace Hypnos.Desktop.Repositories
 
             return tokenValue == DBNull.Value ? string.Empty : (string)tokenValue;
         }
+
+        public void LogOut(string token)
+        {
+            Execute("Auth.LogOut",
+                new SqlParameter { ParameterName = "@token", Value = token }
+            );
+        }
     }
 }

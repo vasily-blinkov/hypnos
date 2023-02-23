@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Windows.Forms;
 using Hypnos.Desktop.Forms;
+using Hypnos.Desktop.Repositories;
+using Hypnos.Desktop.Utils;
 
 namespace Hypnos.Desktop
 {
@@ -29,6 +31,23 @@ namespace Hypnos.Desktop
             return parentForm;
         }
 
-        public static void Exit() => Application.Exit();
+        public static void Exit()
+        {
+            LogOut();
+            Application.Exit();
+        }
+
+        private static void LogOut()
+        {
+            if (!AuthenticationUtility.IsAuthenticated)
+            {
+                return;
+            }
+
+            using (var repository = new AuthRepository())
+            {
+                repository.LogOut(AuthenticationUtility.Token);
+            }
+        }
     }
 }
