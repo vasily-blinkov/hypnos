@@ -182,6 +182,7 @@
             // 
             // AuthenticationForm
             // 
+            this.AcceptButton = this.checkLoginLink;
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.cancelLink;
@@ -195,6 +196,7 @@
             this.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Hide;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Hypnos – Аутентификация";
+            this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.Exit);
             this.authenticationTabs.ResumeLayout(false);
             this.loginTab.ResumeLayout(false);
             this.loginTab.PerformLayout();

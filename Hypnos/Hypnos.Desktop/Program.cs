@@ -6,6 +6,9 @@ namespace Hypnos.Desktop
 {
     internal static class Program
     {
+        private static ParentForm parentForm;
+        public static ParentForm ParentForm => parentForm ?? (parentForm = CreateParentForm());
+
         /// <summary>
         /// The main entry point for the application.
         /// </summary>
@@ -14,7 +17,18 @@ namespace Hypnos.Desktop
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new AuthenticationForm());
+
+            new AuthenticationForm().ShowDialog();
+            Application.Run(ParentForm);
         }
+
+        private static ParentForm CreateParentForm()
+        {
+            var parentForm = new ParentForm();
+            parentForm.Visible = false;
+            return parentForm;
+        }
+
+        public static void Exit() => Application.Exit();
     }
 }

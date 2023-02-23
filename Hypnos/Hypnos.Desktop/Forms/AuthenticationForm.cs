@@ -15,9 +15,14 @@ namespace Hypnos.Desktop.Forms
         /// <summary>
         /// If a user cancels the authentication, the application should exit.
         /// </summary>
-        private void Exit(object sender, LinkLabelLinkClickedEventArgs e)
+        private void Exit(object sender, LinkLabelLinkClickedEventArgs e) => Program.Exit();
+
+        private void Exit(object sender, FormClosedEventArgs e)
         {
-            Application.Exit();
+            if (!AuthenticationUtility.IsAuthenticated)
+            {
+                Program.Exit();
+            }
         }
 
         /// <summary>
@@ -37,6 +42,7 @@ namespace Hypnos.Desktop.Forms
         {
             authenticationTabs.TabPages.Add(loginTab);
             authenticationTabs.TabPages.Remove(passwordTab);
+            AcceptButton = checkLoginLink;
         }
 
         /// <summary>
@@ -55,6 +61,7 @@ namespace Hypnos.Desktop.Forms
             {
                 authenticationTabs.TabPages.Add(passwordTab);
                 authenticationTabs.TabPages.Remove(loginTab);
+                AcceptButton = checkPasswordLink;
             }
             else
             {
@@ -84,6 +91,8 @@ namespace Hypnos.Desktop.Forms
             if (checkPasswordLink.Enabled = !string.IsNullOrWhiteSpace(token))
             {
                 AuthenticationUtility.Token = token;
+                this.Close();
+
             }
             else
             {
