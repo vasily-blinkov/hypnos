@@ -6,6 +6,8 @@ namespace Hypnos.Desktop.Repositories
 {
     public class AuthRepository : RepositoryBase
     {
+        protected override string SchemaName => "Auth";
+
         /// <summary>
         /// Check if login exists.
         /// </summary>
@@ -15,7 +17,7 @@ namespace Hypnos.Desktop.Repositories
         {
             const string result = "@result";
 
-            return (bool)Execute("Auth.DoesLoginExist",
+            return (bool)Execute("DoesLoginExist",
                 new SqlParameter { ParameterName = result, SqlDbType = SqlDbType.Bit, Direction = ParameterDirection.ReturnValue },
                 new SqlParameter { ParameterName = "@login_name", Value = loginName }
             )[result].Value;
@@ -25,7 +27,7 @@ namespace Hypnos.Desktop.Repositories
         {
             const string tokenName = "@token";
 
-            var tokenValue = Execute("Auth.Authenticate",
+            var tokenValue = Execute("Authenticate",
                 new SqlParameter { ParameterName = "@login_name", Value = loginName },
                 new SqlParameter { ParameterName = "@password_hash", Value = passwordHash },
                 new SqlParameter { ParameterName = tokenName, Direction = ParameterDirection.Output, Size = 128 }
@@ -36,9 +38,17 @@ namespace Hypnos.Desktop.Repositories
 
         public void LogOut(string token)
         {
-            Execute("Auth.LogOut",
+            Execute("LogOut",
                 new SqlParameter { ParameterName = "@token", Value = token }
             );
+        }
+
+        /// <summary>
+        /// Removes outdated sessions.
+        /// </summary>
+        public void CleanupSessions()
+        {
+            Execute("CleanupSessions");
         }
     }
 }

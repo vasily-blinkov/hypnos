@@ -358,6 +358,15 @@ AS BEGIN
 END
 GO
 
+-- Procedure: Hypnos.Auth.CleanupSessions.
+-- Removes all sessions older than 2 hours.
+PRINT N'Creating of altering function ''CleanupSessions''';
+CREATE OR ALTER PROCEDURE Auth.CleanupSessions
+AS BEGIN
+	DELETE FROM Auth.[Session] WHERE DATEADD(hour, 2, UpdatedDate) < GETDATE();
+END
+GO
+
 /*
 -- authentication 
 print N'';
@@ -373,6 +382,10 @@ print N'Token: ' + @result + N'.';
 
 -- logging out
 exec auth.logout @token = N'1B2DD975736BAD0C6062DD09A0626D5D13E5B0DEFBA41A6D2B6B38B197CD494A58D9212EADA3BF06B9DEC296A1B7CEF852E649EA7CE3A952FE75D4A3C23E0676'
+
+select s.updateddate, dateadd(hour, 2, s.updateddate), getdate(), s.token
+from auth.[session] s
+where dateadd(hour, 2, s.updateddate) < getdate()
 */
 
 

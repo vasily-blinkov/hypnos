@@ -44,6 +44,7 @@
             this.Text = "Hypnos";
             this.WindowState = System.Windows.Forms.FormWindowState.Maximized;
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.Exit);
+            this.Load += new System.EventHandler(this.Ready);
             this.ResumeLayout(false);
 
         }

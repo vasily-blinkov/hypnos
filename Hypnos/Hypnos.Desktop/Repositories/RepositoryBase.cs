@@ -11,6 +11,8 @@ namespace Hypnos.Desktop.Repositories
     {
         private SqlConnection connection;
 
+        protected virtual string SchemaName => string.Empty;
+
         public RepositoryBase()
         {
             connection = new SqlConnection(ConfigurationManager.ConnectionStrings["Hypnos"].ConnectionString);
@@ -28,7 +30,9 @@ namespace Hypnos.Desktop.Repositories
 
         protected SqlParameterCollection Execute(string procedureName, params SqlParameter[] parameters)
         {
-            using (var command = new SqlCommand(procedureName, connection) { CommandType = CommandType.StoredProcedure })
+            var procedurePath = $"{(!string.IsNullOrWhiteSpace(SchemaName) ? $"{SchemaName}." : string.Empty)}{procedureName}";
+
+            using (var command = new SqlCommand(procedurePath, connection) { CommandType = CommandType.StoredProcedure })
             {
                 if ((parameters?.Any()).GetValueOrDefault())
                 {
