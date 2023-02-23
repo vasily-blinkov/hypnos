@@ -305,8 +305,7 @@ IF OBJECT_ID('Auth.Session') IS NULL
 BEGIN
 	PRINT N'Creating table ''Session''.'
 	CREATE TABLE Auth.Session (
-		ID bigint/*uniqueidentifier*/ IDENTITY(-9223372036854775808, 1) PRIMARY KEY NOT NULL,
-		Token nvarchar(128) NOT NULL,
+		Token nvarchar(128) PRIMARY KEY NOT NULL,
 		UserID smallint FOREIGN KEY REFERENCES Administration.[User](ID) NOT NULL,
 		UpdatedDate datetime DEFAULT GETDATE() NOT NULL
 	);
@@ -324,7 +323,7 @@ BEGIN
 END
 GO
 
--- Function: Hypnos.Auth.Authenticate.
+-- Procedure: Hypnos.Auth.Authenticate.
 PRINT N'Creating of altering function ''Authenticate''';
 CREATE OR ALTER PROCEDURE Auth.Authenticate 
 	@login_name Name,
@@ -350,11 +349,17 @@ AS BEGIN
 END
 GO
 
-/*
-select CONVERT(nvarchar(128), HashBytes('sha2_512', N'woTdzTfu5VUxUjtnr8fJ' + N'seed'), 2)
-select CONVERT(nvarchar(128), HashBytes('sha2_512', N'woTdzTfu5VUxUjtnr8fJ' + N'seed'), 2)
-select (HashBytes('sha2_512', N'woTdzTfu5VUxUjtnr8fJ' + N'seed'))
+-- Procedure: Hypnos.Auth.LogOut.
+PRINT N'Creating of altering function ''LogOut''';
+CREATE OR ALTER PROCEDURE Auth.LogOut
+	@token nvarchar(128)
+AS BEGIN
+	DELETE FROM Auth.[Session] WHERE Token = @token;
+END
+GO
 
+/*
+-- authentication 
 print N'';
 declare @password_hash nvarchar(128);
 declare @result nvarchar(128);
@@ -365,6 +370,9 @@ exec auth.authenticate
 	--@password_hash = N'wrong',
 	@token = @result output;
 print N'Token: ' + @result + N'.';
+
+-- logging out
+exec auth.logout @token = N'1B2DD975736BAD0C6062DD09A0626D5D13E5B0DEFBA41A6D2B6B38B197CD494A58D9212EADA3BF06B9DEC296A1B7CEF852E649EA7CE3A952FE75D4A3C23E0676'
 */
 
 
