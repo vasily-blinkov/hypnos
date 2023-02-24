@@ -182,16 +182,115 @@ BEGIN
 END
 GO
 
+-- Hypnos.Auth.
+IF SCHEMA_ID('Auth') IS NULL
+BEGIN
+	PRINT N'Creating schema ''Auth''.';
+	EXEC (N'CREATE SCHEMA Auth');
+END
+GO
+
+-- Hypnos.Auth.Session.
+IF OBJECT_ID('Auth.Session') IS NULL
+BEGIN
+	PRINT N'Creating table ''Session''.'
+	CREATE TABLE Auth.Session (
+		Token nvarchar(128) PRIMARY KEY NOT NULL,
+		UserID smallint FOREIGN KEY REFERENCES Administration.[User](ID) NOT NULL,
+		UpdatedDate datetime DEFAULT GETDATE() NOT NULL
+	);
+END
+GO
+
+-- Function: Hypnos.Auth.DoesLoginExist.
+PRINT N'Creating or altering function ''DoesLoginExist''';
+CREATE OR ALTER FUNCTION Auth.DoesLoginExist(@login_name Name) RETURNS bit
+BEGIN
+	DECLARE @exists bit;
+	SELECT @exists = IIF(COUNT(1) = 1, 1, 0) FROM Administration.[User] u
+		WHERE u.LoginName = @login_name;
+	RETURN @exists;
+END
+GO
+
+-- Procedure: Hypnos.Auth.Authenticate.
+PRINT N'Creating or altering procedure ''Authenticate''';
+CREATE OR ALTER PROCEDURE Auth.Authenticate 
+	@login_name Name,
+	@password_hash nvarchar(128),
+	@token nvarchar(128) OUTPUT
+AS BEGIN
+	SET NOCOUNT ON; -- for output parameters to be returned to outside
+	DECLARE @expected_password_hash nvarchar(128);
+	DECLARE @user_id smallint;
+	SELECT @expected_password_hash = u.PasswordHash, @user_id = u.ID
+		FROM Administration.[User] u WHERE u.LoginName = @login_name;
+	IF @expected_password_hash IS NOT NULL AND @expected_password_hash = @password_hash
+	BEGIN
+		DECLARE @token_salt nvarchar(20) = N'CjWvXV7ZXtHDPyH8y4LV';
+		DECLARE @date datetime = GETDATE();
+		SET @token = CONVERT(nvarchar(128), HashBytes('SHA2_512',
+			@token_salt
+			+ CONVERT(nvarchar(6), @user_id)
+			+ CONVERT(nvarchar(26), @date, 9)), 2);
+		INSERT INTO Auth.[Session] (Token, UserID, UpdatedDate)
+			VALUES (@token, @user_id, @date);
+	END
+END
+GO
+
+-- Procedure: Hypnos.Auth.LogOut.
+PRINT N'Creating or altering procedure ''LogOut''';
+CREATE OR ALTER PROCEDURE Auth.LogOut
+	@token nvarchar(128)
+AS BEGIN
+	DELETE FROM Auth.[Session] WHERE Token = @token;
+END
+GO
+
+-- Procedure: Hypnos.Auth.CleanupSessions.
+-- Removes all sessions older than 2 hours.
+PRINT N'Creating or altering procedure ''CleanupSessions''';
+CREATE OR ALTER PROCEDURE Auth.CleanupSessions
+AS BEGIN
+	DELETE FROM Auth.[Session] WHERE DATEADD(hour, 2, UpdatedDate) < GETDATE();
+END
+GO
+
+-- Procedure: Hypnos.Auth.ValidateToken.
+/*
+EXEC Auth.ValidateToken @token = N'47A9ACFF99D5275F028FF1ABD914E92A52D7691158E2FA9933CB73CE84B0AFDCA0C7710D3157672FFE6B6CBB133111464056014C7FF96DA3F515F442CA0D33CA';
+2023-02-24 10:17:47.820	2023-02-24 10:18:40.673
+*/
+PRINT N'Creating or altering procedure ''ValidateToken''';
+CREATE OR ALTER PROCEDURE Auth.ValidateToken
+	@token nvarchar(128)
+AS BEGIN
+	DECLARE @count smallint;
+	SELECT @count = COUNT(1) FROM Auth.[Session] s
+		WHERE s.Token = @token AND DATEADD(hour, 2, s.UpdatedDate) >= GETDATE();
+	IF @count = 1
+		UPDATE Auth.[Session] SET UpdatedDate = GETDATE() WHERE Token = @token;
+	ELSE
+		THROW 51000, N'Ваша сессия истекла, пройдите повторную аутентификацию', 1;
+END
+GO
+
 -- Procedure: Hypnos.Administration.GetRoles.
 /*
 USE master; DROP DATABASE Hypnos;
-EXEC Administration.GetRoles;
-EXEC Administration.GetRoles @user_id = -32768;
- */
+EXEC Administration.GetRoles
+	@token = N'47A9ACFF99D5275F028FF1ABD914E92A52D7691158E2FA9933CB73CE84B0AFDCA0C7710D3157672FFE6B6CBB133111464056014C7FF96DA3F515F442CA0D33CA';
+EXEC Administration.GetRoles
+	@token = N'47A9ACFF99D5275F028FF1ABD914E92A52D7691158E2FA9933CB73CE84B0AFDCA0C7710D3157672FFE6B6CBB133111464056014C7FF96DA3F515F442CA0D33CA',
+	@user_id = -32768;
+*/
 PRINT N'Creating or altering procedure ''GetRoles''';
 CREATE OR ALTER PROCEDURE Administration.GetRoles
-	@user_id smallint = NULL
+	@user_id smallint = NULL,
+	@token nvarchar(128)
 AS BEGIN
+	EXEC Auth.ValidateToken @token = @token;
 	SET NOCOUNT ON;
 	IF @user_id IS NOT NULL
 		-- Select roles for a specific user.
@@ -314,81 +413,6 @@ BEGIN
 		UpdatedDate datetime DEFAULT GETDATE() NOT NULL,
 		IsDeleted Flag DEFAULT 0 NOT NULL
 	);
-END
-GO
-
--- Hypnos.Auth.
-IF SCHEMA_ID('Auth') IS NULL
-BEGIN
-	PRINT N'Creating schema ''Auth''.';
-	EXEC (N'CREATE SCHEMA Auth');
-END
-GO
-
--- Hypnos.Auth.Session.
-IF OBJECT_ID('Auth.Session') IS NULL
-BEGIN
-	PRINT N'Creating table ''Session''.'
-	CREATE TABLE Auth.Session (
-		Token nvarchar(128) PRIMARY KEY NOT NULL,
-		UserID smallint FOREIGN KEY REFERENCES Administration.[User](ID) NOT NULL,
-		UpdatedDate datetime DEFAULT GETDATE() NOT NULL
-	);
-END
-GO
-
--- Function: Hypnos.Auth.DoesLoginExist.
-PRINT N'Creating or altering function ''DoesLoginExist''';
-CREATE OR ALTER FUNCTION Auth.DoesLoginExist(@login_name Name) RETURNS bit
-BEGIN
-	DECLARE @exists bit;
-	SELECT @exists = IIF(COUNT(1) = 1, 1, 0) FROM Administration.[User] u
-		WHERE u.LoginName = @login_name;
-	RETURN @exists;
-END
-GO
-
--- Procedure: Hypnos.Auth.Authenticate.
-PRINT N'Creating or altering procedure ''Authenticate''';
-CREATE OR ALTER PROCEDURE Auth.Authenticate 
-	@login_name Name,
-	@password_hash nvarchar(128),
-	@token nvarchar(128) OUTPUT
-AS BEGIN
-	SET NOCOUNT ON; -- for output parameters to be returned to outside
-	DECLARE @expected_password_hash nvarchar(128);
-	DECLARE @user_id smallint;
-	SELECT @expected_password_hash = u.PasswordHash, @user_id = u.ID
-		FROM Administration.[User] u WHERE u.LoginName = @login_name;
-	IF @expected_password_hash IS NOT NULL AND @expected_password_hash = @password_hash
-	BEGIN
-		DECLARE @token_salt nvarchar(20) = N'CjWvXV7ZXtHDPyH8y4LV';
-		DECLARE @date datetime = GETDATE();
-		SET @token = CONVERT(nvarchar(128), HashBytes('SHA2_512',
-			@token_salt
-			+ CONVERT(nvarchar(6), @user_id)
-			+ CONVERT(nvarchar(26), @date, 9)), 2);
-		INSERT INTO Auth.[Session] (Token, UserID, UpdatedDate)
-			VALUES (@token, @user_id, @date);
-	END
-END
-GO
-
--- Procedure: Hypnos.Auth.LogOut.
-PRINT N'Creating or altering procedure ''LogOut''';
-CREATE OR ALTER PROCEDURE Auth.LogOut
-	@token nvarchar(128)
-AS BEGIN
-	DELETE FROM Auth.[Session] WHERE Token = @token;
-END
-GO
-
--- Procedure: Hypnos.Auth.CleanupSessions.
--- Removes all sessions older than 2 hours.
-PRINT N'Creating or altering procedure ''CleanupSessions''';
-CREATE OR ALTER PROCEDURE Auth.CleanupSessions
-AS BEGIN
-	DELETE FROM Auth.[Session] WHERE DATEADD(hour, 2, UpdatedDate) < GETDATE();
 END
 GO
 
