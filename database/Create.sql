@@ -182,6 +182,31 @@ BEGIN
 END
 GO
 
+-- Procedure: Hypnos.Administration.GetRoles.
+/*
+USE master; DROP DATABASE Hypnos;
+EXEC Administration.GetRoles;
+EXEC Administration.GetRoles @user_id = -32768;
+ */
+PRINT N'Creating or altering procedure ''GetRoles''';
+CREATE OR ALTER PROCEDURE Administration.GetRoles
+	@user_id smallint = NULL
+AS BEGIN
+	SET NOCOUNT ON;
+	IF @user_id IS NOT NULL
+		-- Select roles for a specific user.
+		SELECT ur.RoleID ID, r.Name Name, r.Description Description
+		FROM Administration.UserRole ur
+		JOIN Administration.Role r ON r.ID = ur.RoleID
+		WHERE ur.UserID = @user_id;
+	ELSE
+		-- Select all roles available.
+		SELECT r.ID ID, r.Name Name, r.Description Description
+		FROM Administration.[Role] r;
+	RETURN;
+END
+GO
+
 -- Hypnos.Management.
 IF SCHEMA_ID('Management') IS NULL
 BEGIN
@@ -313,7 +338,7 @@ END
 GO
 
 -- Function: Hypnos.Auth.DoesLoginExist.
-PRINT N'Creating of altering function ''DoesLoginExist''';
+PRINT N'Creating or altering function ''DoesLoginExist''';
 CREATE OR ALTER FUNCTION Auth.DoesLoginExist(@login_name Name) RETURNS bit
 BEGIN
 	DECLARE @exists bit;
@@ -324,7 +349,7 @@ END
 GO
 
 -- Procedure: Hypnos.Auth.Authenticate.
-PRINT N'Creating of altering function ''Authenticate''';
+PRINT N'Creating or altering procedure ''Authenticate''';
 CREATE OR ALTER PROCEDURE Auth.Authenticate 
 	@login_name Name,
 	@password_hash nvarchar(128),
@@ -350,7 +375,7 @@ END
 GO
 
 -- Procedure: Hypnos.Auth.LogOut.
-PRINT N'Creating of altering function ''LogOut''';
+PRINT N'Creating or altering procedure ''LogOut''';
 CREATE OR ALTER PROCEDURE Auth.LogOut
 	@token nvarchar(128)
 AS BEGIN
@@ -360,33 +385,14 @@ GO
 
 -- Procedure: Hypnos.Auth.CleanupSessions.
 -- Removes all sessions older than 2 hours.
-PRINT N'Creating of altering function ''CleanupSessions''';
+PRINT N'Creating or altering procedure ''CleanupSessions''';
 CREATE OR ALTER PROCEDURE Auth.CleanupSessions
 AS BEGIN
 	DELETE FROM Auth.[Session] WHERE DATEADD(hour, 2, UpdatedDate) < GETDATE();
 END
 GO
 
-/*
--- authentication 
-print N'';
-declare @password_hash nvarchar(128);
-declare @result nvarchar(128);
-select @password_hash = CONVERT(nvarchar(128), HashBytes('sha2_512', N'woTdzTfu5VUxUjtnr8fJ' + N'seed'), 2);
-exec auth.authenticate
-	@login_name = N'seed',
-	@password_hash = @password_hash,
-	--@password_hash = N'wrong',
-	@token = @result output;
-print N'Token: ' + @result + N'.';
 
--- logging out
-exec auth.logout @token = N'1B2DD975736BAD0C6062DD09A0626D5D13E5B0DEFBA41A6D2B6B38B197CD494A58D9212EADA3BF06B9DEC296A1B7CEF852E649EA7CE3A952FE75D4A3C23E0676'
-
-select s.updateddate, dateadd(hour, 2, s.updateddate), getdate(), s.token
-from auth.[session] s
-where dateadd(hour, 2, s.updateddate) < getdate()
-*/
 
 
 
