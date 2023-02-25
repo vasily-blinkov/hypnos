@@ -1,6 +1,10 @@
-﻿using Hypnos.Desktop.Repositories;
-using Hypnos.Desktop.Utils;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Windows.Forms;
+using Hypnos.Desktop.Models.Administration;
+using Hypnos.Desktop.Repositories;
+using Hypnos.Desktop.Utils;
 
 namespace Hypnos.Desktop.Forms
 {
@@ -19,6 +23,28 @@ namespace Hypnos.Desktop.Forms
             }
 
             Program.Exit();
+        }
+
+        public void ApplyRoles()
+        {
+            List<Role> rolesCollection;
+
+            using (var repository = new AdministrationRepository())
+            {
+                rolesCollection = repository.GetRoles(AuthenticationUtility.UserId.Value);
+            }
+
+            Action<string, ToolStripMenuItem> apply = (string role, ToolStripMenuItem item) =>
+            {
+                if (!rolesCollection.Any(r => r.Name == role))
+                {
+                    item.Visible = false;
+                }
+            };
+
+            apply("Администратор", administrationItem);
+            apply("Руководитель", managementItem);
+            apply("Специалист", workloadItem);
         }
     }
 }

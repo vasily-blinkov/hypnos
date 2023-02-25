@@ -128,8 +128,10 @@ IF NOT EXISTS(SELECT * FROM Administration.[Role] r WHERE r.ID = -32768)
 BEGIN
 	PRINT 'Creating role ''Администратор''.';
 	SET IDENTITY_INSERT Administration.[Role] ON;
-	INSERT INTO Administration.[Role](ID, Name, CreatedBy, UpdatedBy)
-	VALUES(-32768, N'Администратор', -32768, -32768);
+	INSERT INTO Administration.[Role](ID, Name, Description, CreatedBy, UpdatedBy)
+	VALUES(-32768, N'Администратор',
+		N'Управление учётными данными пользователей',
+		-32768, -32768);
 	SET IDENTITY_INSERT Administration.[User] OFF;
 END
 GO
@@ -139,8 +141,10 @@ IF NOT EXISTS(SELECT * FROM Administration.[Role] u WHERE u.ID = -32767)
 BEGIN
 	PRINT 'Creating role ''Руководитель''.';
 	SET IDENTITY_INSERT Administration.[Role] ON;
-	INSERT INTO Administration.[Role](ID, Name, CreatedBy, UpdatedBy)
-	VALUES(-32767, N'Руководитель', -32768, -32768);
+	INSERT INTO Administration.[Role](ID, Name, Description, CreatedBy, UpdatedBy)
+	VALUES(-32767, N'Руководитель',
+		N'Управление рабочими процессами',
+		-32768, -32768);
 	SET IDENTITY_INSERT Administration.[User] OFF;
 END
 GO
@@ -150,8 +154,10 @@ IF NOT EXISTS(SELECT * FROM Administration.[Role] u WHERE u.ID = -32766)
 BEGIN
 	PRINT 'Creating role ''Специалист''.';
 	SET IDENTITY_INSERT Administration.[Role] ON;
-	INSERT INTO Administration.[Role](ID, Name, CreatedBy, UpdatedBy)
-	VALUES(-32766, N'Специалист', -32768, -32768);
+	INSERT INTO Administration.[Role](ID, Name, Description, CreatedBy, UpdatedBy)
+	VALUES(-32766, N'Специалист',
+		N'Ведение рабочих нагрузок',
+		-32768, -32768);
 	SET IDENTITY_INSERT Administration.[User] OFF;
 END
 GO
@@ -215,22 +221,25 @@ GO
 
 -- Procedure: Hypnos.Auth.Authenticate.
 /*
-DECLARE @token nvarchar(128);
+DECLARE @token nvarchar(128),
+	@user_id smallint;
 DECLARE @password_hash nvarchar(128) = Convert(nvarchar(128), HashBytes('SHA2_512', N'woTdzTfu5VUxUjtnr8fJ' + N'seed'), 2);
 EXEC Auth.Authenticate
 	@login_name = N'seed',
 	@password_hash = @password_hash,
-	@token = @token OUTPUT;
+	@token = @token OUTPUT,
+	@user_id = @user_id OUTPUT;
+PRINT 'userId: ' + Convert(nvarchar(6), @user_id);
  */
 PRINT N'Creating or altering procedure ''Authenticate''';
 CREATE OR ALTER PROCEDURE Auth.Authenticate 
 	@login_name Name,
 	@password_hash nvarchar(128),
-	@token nvarchar(128) OUTPUT
+	@token nvarchar(128) OUTPUT,
+	@user_id smallint OUTPUT
 AS BEGIN
 	SET NOCOUNT ON; -- for output parameters to be returned to outside
 	DECLARE @expected_password_hash nvarchar(128);
-	DECLARE @user_id smallint;
 	SELECT @expected_password_hash = u.PasswordHash, @user_id = u.ID
 		FROM Administration.[User] u WHERE u.LoginName = @login_name;
 	IF @expected_password_hash IS NOT NULL AND @expected_password_hash = @password_hash
@@ -267,7 +276,7 @@ GO
 
 -- Procedure: Hypnos.Auth.ValidateToken.
 /*
-EXEC Auth.ValidateToken @token = N'F45CC9EEEE7ACE367232B99888ED61DA8D7A9811FE40C1C898D283E40167D99F5E560A316C61C7B95FE3219B8E270F8A0672F862717063F022F798C687BA5638';
+EXEC Auth.ValidateToken @token = N'8D19B063F914ECA763ED1A42D7CFEB8C2989E232A5B46F2C3958B6973DAA8FCD4E0F223DF9D60793D884508DC8EB51B85E521E2617ED6DA721FA4BF5D74FF6B5';
 */
 PRINT N'Creating or altering procedure ''ValidateToken''';
 CREATE OR ALTER PROCEDURE Auth.ValidateToken
@@ -288,11 +297,10 @@ GO
 
 -- Procedure: Hypnos.Administration.GetRoles.
 /*
-USE master; DROP DATABASE Hypnos;
 EXEC Administration.GetRoles
-	@token = N'47A9ACFF99D5275F028FF1ABD914E92A52D7691158E2FA9933CB73CE84B0AFDCA0C7710D3157672FFE6B6CBB133111464056014C7FF96DA3F515F442CA0D33CA';
+	@token = N'8D19B063F914ECA763ED1A42D7CFEB8C2989E232A5B46F2C3958B6973DAA8FCD4E0F223DF9D60793D884508DC8EB51B85E521E2617ED6DA721FA4BF5D74FF6B5';
 EXEC Administration.GetRoles
-	@token = N'47A9ACFF99D5275F028FF1ABD914E92A52D7691158E2FA9933CB73CE84B0AFDCA0C7710D3157672FFE6B6CBB133111464056014C7FF96DA3F515F442CA0D33CA',
+	@token = N'8D19B063F914ECA763ED1A42D7CFEB8C2989E232A5B46F2C3958B6973DAA8FCD4E0F223DF9D60793D884508DC8EB51B85E521E2617ED6DA721FA4BF5D74FF6B5',
 	@user_id = -32768;
 */
 PRINT N'Creating or altering procedure ''GetRoles''';
@@ -307,11 +315,12 @@ AS BEGIN
 		SELECT ur.RoleID ID, r.Name Name, r.Description Description
 		FROM Administration.UserRole ur
 		JOIN Administration.Role r ON r.ID = ur.RoleID
-		WHERE ur.UserID = @user_id;
+		WHERE ur.UserID = @user_id AND r.IsDeleted = 0;
 	ELSE
 		-- Select all roles available.
 		SELECT r.ID ID, r.Name Name, r.Description Description
-		FROM Administration.[Role] r;
+		FROM Administration.[Role] r
+		WHERE r.IsDeleted = 0;
 	RETURN;
 END
 GO

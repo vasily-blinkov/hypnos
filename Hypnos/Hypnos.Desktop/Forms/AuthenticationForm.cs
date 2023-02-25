@@ -1,4 +1,5 @@
-﻿using Hypnos.Desktop.Repositories;
+﻿using Hypnos.Desktop.Models.Auth;
+using Hypnos.Desktop.Repositories;
 using Hypnos.Desktop.Utils;
 using System.Windows.Forms;
 
@@ -81,18 +82,20 @@ namespace Hypnos.Desktop.Forms
 
         private void CheckPassword(object sender, LinkLabelLinkClickedEventArgs e)
         {
-            string token = string.Empty;
+            AuthResult authResult;
 
             using (var repository = new AuthRepository())
             {
-                token = repository.Authenticate(loginBox.Text, HashUtility.HashPassword(passwordBox.Text));
+                authResult = repository.Authenticate(loginBox.Text, HashUtility.HashPassword(passwordBox.Text));
             }
 
-            if (checkPasswordLink.Enabled = !string.IsNullOrWhiteSpace(token))
+            if (checkPasswordLink.Enabled = !string.IsNullOrWhiteSpace(authResult?.Token) && (authResult?.UserId).HasValue)
             {
-                AuthenticationUtility.Token = token;
-                this.Close();
+                AuthenticationUtility.Token = authResult.Token;
+                AuthenticationUtility.UserId = authResult.UserId;
 
+                Program.ParentForm.ApplyRoles();
+                this.Close();
             }
             else
             {

@@ -1,10 +1,10 @@
-﻿using Hypnos.Desktop.Utils;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
+using Hypnos.Desktop.Utils;
 
 namespace Hypnos.Desktop.Repositories
 {
@@ -29,22 +29,10 @@ namespace Hypnos.Desktop.Repositories
             connection.Dispose();
         }
 
-        protected SqlParameterCollection Execute(string procedureName, params SqlParameter[] parameters)
+        protected SqlParameterCollection ExecuteScalar(string procedureName, params SqlParameter[] parameters)
         {
-            var procedurePath = $"{(!string.IsNullOrWhiteSpace(SchemaName) ? $"{SchemaName}." : string.Empty)}{procedureName}";
-
-            using (var command = new SqlCommand(procedurePath, connection) { CommandType = CommandType.StoredProcedure })
+            using (var command = CreateCommand(procedureName, parameters))
             {
-                if ((parameters?.Any()).GetValueOrDefault())
-                {
-                    command.Parameters.AddRange(parameters);
-                }
-
-                if (connection.State != ConnectionState.Open)
-                {
-                    connection.Open();
-                }
-
                 try
                 {
                     command.ExecuteScalar();
@@ -56,6 +44,47 @@ namespace Hypnos.Desktop.Repositories
 
                 return command.Parameters;
             }
+        }
+
+        protected List<T> ExecuteReader<T>(
+            string procedureName,
+            Func<SqlDataReader, T> convert,
+            params SqlParameter[] parameters)
+        {
+            List<T> resultCollection = null;
+
+            using (var command = CreateCommand(procedureName, parameters))
+            {
+                using (var reader = command.ExecuteReader())
+                {
+                    resultCollection = new List<T>();
+
+                    while (reader.Read())
+                    {
+                        resultCollection.Add(convert(reader));
+                    }
+                }
+            }
+
+            return resultCollection;
+        }
+
+        private SqlCommand CreateCommand(string procedureName, params SqlParameter[] parameters)
+        {
+            var procedurePath = $"{(!string.IsNullOrWhiteSpace(SchemaName) ? $"{SchemaName}." : string.Empty)}{procedureName}";
+
+            var command = new SqlCommand(procedurePath, connection) { CommandType = CommandType.StoredProcedure };
+            if ((parameters?.Any()).GetValueOrDefault())
+            {
+                command.Parameters.AddRange(parameters);
+            }
+
+            if (connection.State != ConnectionState.Open)
+            {
+                connection.Open();
+            }
+
+            return command;
         }
     }
 }

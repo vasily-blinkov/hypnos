@@ -83,6 +83,9 @@
     <Compile Include="Forms\ParentForm.Designer.cs">
       <DependentUpon>ParentForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="Models\Administration\Role.cs" />
+    <Compile Include="Models\Auth\AuthResult.cs" />
+    <Compile Include="Repositories\AdministrationRepository.cs" />
     <Compile Include="Repositories\AuthRepository.cs" />
     <Compile Include="Forms\AuthenticationForm.cs">
       <SubType>Form</SubType>

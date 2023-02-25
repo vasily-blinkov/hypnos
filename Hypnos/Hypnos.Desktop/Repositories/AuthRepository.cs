@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Data;
 using System.Data.SqlClient;
+using System.Threading.Tasks;
+using Hypnos.Desktop.Models.Auth;
 
 namespace Hypnos.Desktop.Repositories
 {
@@ -17,28 +19,35 @@ namespace Hypnos.Desktop.Repositories
         {
             const string result = "@result";
 
-            return (bool)Execute("DoesLoginExist",
+            return (bool)ExecuteScalar("DoesLoginExist",
                 new SqlParameter { ParameterName = result, SqlDbType = SqlDbType.Bit, Direction = ParameterDirection.ReturnValue },
                 new SqlParameter { ParameterName = "@login_name", Value = loginName }
             )[result].Value;
         }
 
-        public string Authenticate(string loginName, string passwordHash)
+        public AuthResult Authenticate(string loginName, string passwordHash)
         {
             const string tokenName = "@token";
+            const string userIdName = "@user_id";
 
-            var tokenValue = Execute("Authenticate",
+            var parameterCollection = ExecuteScalar("Authenticate",
                 new SqlParameter { ParameterName = "@login_name", Value = loginName },
                 new SqlParameter { ParameterName = "@password_hash", Value = passwordHash },
-                new SqlParameter { ParameterName = tokenName, Direction = ParameterDirection.Output, Size = 128 }
-            )[tokenName].Value;
+                new SqlParameter { ParameterName = tokenName, Direction = ParameterDirection.Output, Size = 128 },
+                new SqlParameter { ParameterName = userIdName, Direction = ParameterDirection.Output, SqlDbType = SqlDbType.SmallInt }
+            );
 
-            return tokenValue == DBNull.Value ? string.Empty : (string)tokenValue;
+            var tokenValue = parameterCollection[tokenName].Value;
+            var userIdValue = parameterCollection[userIdName].Value;
+
+            return tokenValue != DBNull.Value
+                ? new AuthResult { Token = (string)tokenValue, UserId = (short)userIdValue }
+                : null;
         }
 
         public void LogOut(string token)
         {
-            Execute("LogOut",
+            ExecuteScalar("LogOut",
                 new SqlParameter { ParameterName = "@token", Value = token }
             );
         }
@@ -48,7 +57,7 @@ namespace Hypnos.Desktop.Repositories
         /// </summary>
         public void CleanupSessions()
         {
-            Execute("CleanupSessions");
+            ExecuteScalar("CleanupSessions");
         }
     }
 }

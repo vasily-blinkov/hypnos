@@ -7,6 +7,8 @@
         /// </summary>
         public static string Token { get; set; }
 
-        public static bool IsAuthenticated => !string.IsNullOrWhiteSpace(Token);
+        public static short? UserId { get; set; }
+
+        public static bool IsAuthenticated => !string.IsNullOrWhiteSpace(Token) && UserId.HasValue;
     }
 }
