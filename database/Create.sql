@@ -214,6 +214,14 @@ END
 GO
 
 -- Procedure: Hypnos.Auth.Authenticate.
+/*
+DECLARE @token nvarchar(128);
+DECLARE @password_hash nvarchar(128) = Convert(nvarchar(128), HashBytes('SHA2_512', N'woTdzTfu5VUxUjtnr8fJ' + N'seed'), 2);
+EXEC Auth.Authenticate
+	@login_name = N'seed',
+	@password_hash = @password_hash,
+	@token = @token OUTPUT;
+ */
 PRINT N'Creating or altering procedure ''Authenticate''';
 CREATE OR ALTER PROCEDURE Auth.Authenticate 
 	@login_name Name,
@@ -259,8 +267,7 @@ GO
 
 -- Procedure: Hypnos.Auth.ValidateToken.
 /*
-EXEC Auth.ValidateToken @token = N'47A9ACFF99D5275F028FF1ABD914E92A52D7691158E2FA9933CB73CE84B0AFDCA0C7710D3157672FFE6B6CBB133111464056014C7FF96DA3F515F442CA0D33CA';
-2023-02-24 10:17:47.820	2023-02-24 10:18:40.673
+EXEC Auth.ValidateToken @token = N'F45CC9EEEE7ACE367232B99888ED61DA8D7A9811FE40C1C898D283E40167D99F5E560A316C61C7B95FE3219B8E270F8A0672F862717063F022F798C687BA5638';
 */
 PRINT N'Creating or altering procedure ''ValidateToken''';
 CREATE OR ALTER PROCEDURE Auth.ValidateToken
@@ -272,7 +279,10 @@ AS BEGIN
 	IF @count = 1
 		UPDATE Auth.[Session] SET UpdatedDate = GETDATE() WHERE Token = @token;
 	ELSE
+	BEGIN
+		DELETE FROM Auth.[Session] WHERE Token = @token;
 		THROW 51000, N'Ваша сессия истекла, пройдите повторную аутентификацию', 1;
+	END
 END
 GO
 
