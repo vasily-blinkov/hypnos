@@ -65,6 +65,7 @@
             this.administrationItem.Name = "administrationItem";
             this.administrationItem.Size = new System.Drawing.Size(134, 20);
             this.administrationItem.Text = "&Администрирование";
+            this.administrationItem.Click += new System.EventHandler(this.OpenUsers);
             // 
             // ParentForm
             // 

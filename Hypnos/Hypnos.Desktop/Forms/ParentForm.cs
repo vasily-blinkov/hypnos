@@ -46,5 +46,12 @@ namespace Hypnos.Desktop.Forms
             apply("Руководитель", managementItem);
             apply("Специалист", workloadItem);
         }
+
+        private void OpenUsers(object sender, EventArgs e)
+        {
+            var form = new UsersForm();
+            form.MdiParent = this;
+            form.Show();
+        }
     }
 }
