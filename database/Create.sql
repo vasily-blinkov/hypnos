@@ -352,7 +352,7 @@ CREATE OR ALTER PROCEDURE Administration.GetSignleUser
 AS BEGIN
 	EXEC Auth.ValidateToken @token = @token;
 	SELECT TOP(1)
-		u.FullName, u.LoginName, u.Description
+		u.ID, u.FullName, u.LoginName, u.Description
 		FROM Administration.[User] u;
 END
 GO
