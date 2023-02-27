@@ -230,6 +230,7 @@ EXEC Auth.Authenticate
 	@token = @token OUTPUT,
 	@user_id = @user_id OUTPUT;
 PRINT 'userId: ' + Convert(nvarchar(6), @user_id);
+PRINT 'token: ' + @token;
  */
 PRINT N'Creating or altering procedure ''Authenticate''';
 CREATE OR ALTER PROCEDURE Auth.Authenticate 
@@ -322,6 +323,19 @@ AS BEGIN
 		FROM Administration.[Role] r
 		WHERE r.IsDeleted = 0;
 	RETURN;
+END
+GO
+
+-- Procedure: Hypnos.Administration.GetUsers
+/*
+EXEC Administration.GetUsers @token = N'2F0B7166586402CB3038807CA18E8EDC0E5E1FAF3603B2E84F5F19BB2C0B4AC32C6F29720469E5AB400E0EE338971469E94D01B66498F1A4AB27EB85B3A3B698';
+ */
+PRINT N'Creating or altering procedure ''GetUsers''';
+CREATE OR ALTER PROCEDURE Administration.GetUsers
+	@token nvarchar(128)
+AS BEGIN
+	EXEC Auth.ValidateToken @token = @token;
+	SELECT u.ID, u.FullName, u.LoginName FROM Administration.[User] u;
 END
 GO
 
