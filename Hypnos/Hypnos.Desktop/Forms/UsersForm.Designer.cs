@@ -30,39 +30,37 @@
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(UsersForm));
             this.toolStrip = new System.Windows.Forms.ToolStrip();
-            this.transposeButton = new System.Windows.Forms.ToolStripButton();
-            this.splitContainer = new System.Windows.Forms.SplitContainer();
-            this.dataGridView1 = new System.Windows.Forms.DataGridView();
-            this.fullNameColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.loginNameColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.tableLayoutPanel = new System.Windows.Forms.TableLayoutPanel();
-            this.fullNamePanel = new System.Windows.Forms.Panel();
-            this.fullNameLabel = new System.Windows.Forms.Label();
-            this.fullNameBox = new System.Windows.Forms.TextBox();
-            this.loginPanel = new System.Windows.Forms.Panel();
-            this.loginLabel = new System.Windows.Forms.Label();
-            this.loginBox = new System.Windows.Forms.TextBox();
-            this.passwordPanel = new System.Windows.Forms.Panel();
-            this.passwordLabel = new System.Windows.Forms.Label();
-            this.passwordBox = new System.Windows.Forms.TextBox();
-            this.descriptionPanel = new System.Windows.Forms.Panel();
-            this.descriptionLabel = new System.Windows.Forms.Label();
-            this.descriptionBox = new System.Windows.Forms.TextBox();
-            this.rolesPanel = new System.Windows.Forms.Panel();
-            this.rolesLabel = new System.Windows.Forms.Label();
-            this.rolesBoxes = new System.Windows.Forms.CheckedListBox();
-            this.viewLabel = new System.Windows.Forms.ToolStripLabel();
             this.crudLabel = new System.Windows.Forms.ToolStripLabel();
             this.createButton = new System.Windows.Forms.ToolStripButton();
-            this.deleteButton = new System.Windows.Forms.ToolStripButton();
-            this.upsertButton = new System.Windows.Forms.ToolStripButton();
             this.readButton = new System.Windows.Forms.ToolStripButton();
+            this.upsertButton = new System.Windows.Forms.ToolStripButton();
+            this.deleteButton = new System.Windows.Forms.ToolStripButton();
+            this.transposeButton = new System.Windows.Forms.ToolStripButton();
+            this.viewLabel = new System.Windows.Forms.ToolStripLabel();
+            this.splitContainer = new System.Windows.Forms.SplitContainer();
+            this.usersGrid = new System.Windows.Forms.DataGridView();
+            this.tableLayoutPanel = new System.Windows.Forms.TableLayoutPanel();
+            this.fullNamePanel = new System.Windows.Forms.Panel();
+            this.fullNameBox = new System.Windows.Forms.TextBox();
+            this.fullNameLabel = new System.Windows.Forms.Label();
+            this.loginPanel = new System.Windows.Forms.Panel();
+            this.loginBox = new System.Windows.Forms.TextBox();
+            this.loginLabel = new System.Windows.Forms.Label();
+            this.passwordPanel = new System.Windows.Forms.Panel();
+            this.passwordBox = new System.Windows.Forms.TextBox();
+            this.passwordLabel = new System.Windows.Forms.Label();
+            this.descriptionPanel = new System.Windows.Forms.Panel();
+            this.descriptionBox = new System.Windows.Forms.TextBox();
+            this.descriptionLabel = new System.Windows.Forms.Label();
+            this.rolesPanel = new System.Windows.Forms.Panel();
+            this.rolesBoxes = new System.Windows.Forms.CheckedListBox();
+            this.rolesLabel = new System.Windows.Forms.Label();
             this.toolStrip.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer)).BeginInit();
             this.splitContainer.Panel1.SuspendLayout();
             this.splitContainer.Panel2.SuspendLayout();
             this.splitContainer.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.usersGrid)).BeginInit();
             this.tableLayoutPanel.SuspendLayout();
             this.fullNamePanel.SuspendLayout();
             this.loginPanel.SuspendLayout();
@@ -87,6 +85,48 @@
             this.toolStrip.TabIndex = 0;
             this.toolStrip.Text = "toolStrip1";
             // 
+            // crudLabel
+            // 
+            this.crudLabel.Name = "crudLabel";
+            this.crudLabel.Size = new System.Drawing.Size(53, 22);
+            this.crudLabel.Text = "Данные:";
+            // 
+            // createButton
+            // 
+            this.createButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            this.createButton.Image = ((System.Drawing.Image)(resources.GetObject("createButton.Image")));
+            this.createButton.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.createButton.Name = "createButton";
+            this.createButton.Size = new System.Drawing.Size(54, 22);
+            this.createButton.Text = "&Создать";
+            // 
+            // readButton
+            // 
+            this.readButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            this.readButton.Image = ((System.Drawing.Image)(resources.GetObject("readButton.Image")));
+            this.readButton.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.readButton.Name = "readButton";
+            this.readButton.Size = new System.Drawing.Size(75, 22);
+            this.readButton.Text = "&Перечитать";
+            // 
+            // upsertButton
+            // 
+            this.upsertButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            this.upsertButton.Image = ((System.Drawing.Image)(resources.GetObject("upsertButton.Image")));
+            this.upsertButton.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.upsertButton.Name = "upsertButton";
+            this.upsertButton.Size = new System.Drawing.Size(70, 22);
+            this.upsertButton.Text = "С&охранить";
+            // 
+            // deleteButton
+            // 
+            this.deleteButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            this.deleteButton.Image = ((System.Drawing.Image)(resources.GetObject("deleteButton.Image")));
+            this.deleteButton.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.deleteButton.Name = "deleteButton";
+            this.deleteButton.Size = new System.Drawing.Size(55, 22);
+            this.deleteButton.Text = "&Удалить";
+            // 
             // transposeButton
             // 
             this.transposeButton.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
@@ -99,6 +139,13 @@
             this.transposeButton.TextDirection = System.Windows.Forms.ToolStripTextDirection.Horizontal;
             this.transposeButton.Click += new System.EventHandler(this.Transpose);
             // 
+            // viewLabel
+            // 
+            this.viewLabel.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
+            this.viewLabel.Name = "viewLabel";
+            this.viewLabel.Size = new System.Drawing.Size(30, 22);
+            this.viewLabel.Text = "Вид:";
+            // 
             // splitContainer
             // 
             this.splitContainer.Dock = System.Windows.Forms.DockStyle.Fill;
@@ -107,7 +154,7 @@
             // 
             // splitContainer.Panel1
             // 
-            this.splitContainer.Panel1.Controls.Add(this.dataGridView1);
+            this.splitContainer.Panel1.Controls.Add(this.usersGrid);
             // 
             // splitContainer.Panel2
             // 
@@ -116,34 +163,17 @@
             this.splitContainer.SplitterDistance = 176;
             this.splitContainer.TabIndex = 1;
             // 
-            // dataGridView1
+            // usersGrid
             // 
-            this.dataGridView1.AllowUserToAddRows = false;
-            this.dataGridView1.AllowUserToDeleteRows = false;
-            this.dataGridView1.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            this.dataGridView1.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
-            this.fullNameColumn,
-            this.loginNameColumn});
-            this.dataGridView1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.dataGridView1.Location = new System.Drawing.Point(0, 0);
-            this.dataGridView1.Name = "dataGridView1";
-            this.dataGridView1.ReadOnly = true;
-            this.dataGridView1.Size = new System.Drawing.Size(176, 234);
-            this.dataGridView1.TabIndex = 0;
-            // 
-            // fullNameColumn
-            // 
-            this.fullNameColumn.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
-            this.fullNameColumn.HeaderText = "ФИО";
-            this.fullNameColumn.Name = "fullNameColumn";
-            this.fullNameColumn.ReadOnly = true;
-            // 
-            // loginNameColumn
-            // 
-            this.loginNameColumn.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
-            this.loginNameColumn.HeaderText = "Логин";
-            this.loginNameColumn.Name = "loginNameColumn";
-            this.loginNameColumn.ReadOnly = true;
+            this.usersGrid.AllowUserToAddRows = false;
+            this.usersGrid.AllowUserToDeleteRows = false;
+            this.usersGrid.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.usersGrid.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.usersGrid.Location = new System.Drawing.Point(0, 0);
+            this.usersGrid.Name = "usersGrid";
+            this.usersGrid.ReadOnly = true;
+            this.usersGrid.Size = new System.Drawing.Size(176, 234);
+            this.usersGrid.TabIndex = 0;
             // 
             // tableLayoutPanel
             // 
@@ -178,15 +208,6 @@
             this.fullNamePanel.Size = new System.Drawing.Size(498, 42);
             this.fullNamePanel.TabIndex = 0;
             // 
-            // fullNameLabel
-            // 
-            this.fullNameLabel.AutoSize = true;
-            this.fullNameLabel.Location = new System.Drawing.Point(3, 0);
-            this.fullNameLabel.Name = "fullNameLabel";
-            this.fullNameLabel.Size = new System.Drawing.Size(133, 13);
-            this.fullNameLabel.TabIndex = 0;
-            this.fullNameLabel.Text = "Фамилия, имя, отчество";
-            // 
             // fullNameBox
             // 
             this.fullNameBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
@@ -195,6 +216,15 @@
             this.fullNameBox.Name = "fullNameBox";
             this.fullNameBox.Size = new System.Drawing.Size(483, 20);
             this.fullNameBox.TabIndex = 1;
+            // 
+            // fullNameLabel
+            // 
+            this.fullNameLabel.AutoSize = true;
+            this.fullNameLabel.Location = new System.Drawing.Point(3, 0);
+            this.fullNameLabel.Name = "fullNameLabel";
+            this.fullNameLabel.Size = new System.Drawing.Size(133, 13);
+            this.fullNameLabel.TabIndex = 0;
+            this.fullNameLabel.Text = "Фамилия, имя, отчество";
             // 
             // loginPanel
             // 
@@ -207,15 +237,6 @@
             this.loginPanel.Size = new System.Drawing.Size(246, 42);
             this.loginPanel.TabIndex = 1;
             // 
-            // loginLabel
-            // 
-            this.loginLabel.AutoSize = true;
-            this.loginLabel.Location = new System.Drawing.Point(3, 0);
-            this.loginLabel.Name = "loginLabel";
-            this.loginLabel.Size = new System.Drawing.Size(38, 13);
-            this.loginLabel.TabIndex = 0;
-            this.loginLabel.Text = "Логин";
-            // 
             // loginBox
             // 
             this.loginBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
@@ -224,6 +245,15 @@
             this.loginBox.Name = "loginBox";
             this.loginBox.Size = new System.Drawing.Size(237, 20);
             this.loginBox.TabIndex = 1;
+            // 
+            // loginLabel
+            // 
+            this.loginLabel.AutoSize = true;
+            this.loginLabel.Location = new System.Drawing.Point(3, 0);
+            this.loginLabel.Name = "loginLabel";
+            this.loginLabel.Size = new System.Drawing.Size(38, 13);
+            this.loginLabel.TabIndex = 0;
+            this.loginLabel.Text = "Логин";
             // 
             // passwordPanel
             // 
@@ -236,15 +266,6 @@
             this.passwordPanel.Size = new System.Drawing.Size(246, 42);
             this.passwordPanel.TabIndex = 2;
             // 
-            // passwordLabel
-            // 
-            this.passwordLabel.AutoSize = true;
-            this.passwordLabel.Location = new System.Drawing.Point(3, 0);
-            this.passwordLabel.Name = "passwordLabel";
-            this.passwordLabel.Size = new System.Drawing.Size(45, 13);
-            this.passwordLabel.TabIndex = 0;
-            this.passwordLabel.Text = "Пароль";
-            // 
             // passwordBox
             // 
             this.passwordBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
@@ -254,6 +275,15 @@
             this.passwordBox.PasswordChar = '●';
             this.passwordBox.Size = new System.Drawing.Size(231, 20);
             this.passwordBox.TabIndex = 1;
+            // 
+            // passwordLabel
+            // 
+            this.passwordLabel.AutoSize = true;
+            this.passwordLabel.Location = new System.Drawing.Point(3, 0);
+            this.passwordLabel.Name = "passwordLabel";
+            this.passwordLabel.Size = new System.Drawing.Size(45, 13);
+            this.passwordLabel.TabIndex = 0;
+            this.passwordLabel.Text = "Пароль";
             // 
             // descriptionPanel
             // 
@@ -266,15 +296,6 @@
             this.descriptionPanel.Size = new System.Drawing.Size(372, 132);
             this.descriptionPanel.TabIndex = 3;
             // 
-            // descriptionLabel
-            // 
-            this.descriptionLabel.AutoSize = true;
-            this.descriptionLabel.Location = new System.Drawing.Point(3, 0);
-            this.descriptionLabel.Name = "descriptionLabel";
-            this.descriptionLabel.Size = new System.Drawing.Size(57, 13);
-            this.descriptionLabel.TabIndex = 0;
-            this.descriptionLabel.Text = "Описание";
-            // 
             // descriptionBox
             // 
             this.descriptionBox.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
@@ -286,6 +307,15 @@
             this.descriptionBox.Size = new System.Drawing.Size(363, 109);
             this.descriptionBox.TabIndex = 1;
             // 
+            // descriptionLabel
+            // 
+            this.descriptionLabel.AutoSize = true;
+            this.descriptionLabel.Location = new System.Drawing.Point(3, 0);
+            this.descriptionLabel.Name = "descriptionLabel";
+            this.descriptionLabel.Size = new System.Drawing.Size(57, 13);
+            this.descriptionLabel.TabIndex = 0;
+            this.descriptionLabel.Text = "Описание";
+            // 
             // rolesPanel
             // 
             this.rolesPanel.Controls.Add(this.rolesBoxes);
@@ -295,15 +325,6 @@
             this.rolesPanel.Name = "rolesPanel";
             this.rolesPanel.Size = new System.Drawing.Size(120, 132);
             this.rolesPanel.TabIndex = 4;
-            // 
-            // rolesLabel
-            // 
-            this.rolesLabel.AutoSize = true;
-            this.rolesLabel.Location = new System.Drawing.Point(3, 0);
-            this.rolesLabel.Name = "rolesLabel";
-            this.rolesLabel.Size = new System.Drawing.Size(32, 13);
-            this.rolesLabel.TabIndex = 0;
-            this.rolesLabel.Text = "Роли";
             // 
             // rolesBoxes
             // 
@@ -320,54 +341,14 @@
             this.rolesBoxes.Size = new System.Drawing.Size(105, 109);
             this.rolesBoxes.TabIndex = 1;
             // 
-            // viewLabel
+            // rolesLabel
             // 
-            this.viewLabel.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
-            this.viewLabel.Name = "viewLabel";
-            this.viewLabel.Size = new System.Drawing.Size(30, 22);
-            this.viewLabel.Text = "Вид:";
-            // 
-            // crudLabel
-            // 
-            this.crudLabel.Name = "crudLabel";
-            this.crudLabel.Size = new System.Drawing.Size(53, 22);
-            this.crudLabel.Text = "Данные:";
-            // 
-            // createButton
-            // 
-            this.createButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
-            this.createButton.Image = ((System.Drawing.Image)(resources.GetObject("createButton.Image")));
-            this.createButton.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.createButton.Name = "createButton";
-            this.createButton.Size = new System.Drawing.Size(54, 22);
-            this.createButton.Text = "&Создать";
-            // 
-            // deleteButton
-            // 
-            this.deleteButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
-            this.deleteButton.Image = ((System.Drawing.Image)(resources.GetObject("deleteButton.Image")));
-            this.deleteButton.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.deleteButton.Name = "deleteButton";
-            this.deleteButton.Size = new System.Drawing.Size(55, 22);
-            this.deleteButton.Text = "&Удалить";
-            // 
-            // upsertButton
-            // 
-            this.upsertButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
-            this.upsertButton.Image = ((System.Drawing.Image)(resources.GetObject("upsertButton.Image")));
-            this.upsertButton.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.upsertButton.Name = "upsertButton";
-            this.upsertButton.Size = new System.Drawing.Size(70, 22);
-            this.upsertButton.Text = "С&охранить";
-            // 
-            // readButton
-            // 
-            this.readButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
-            this.readButton.Image = ((System.Drawing.Image)(resources.GetObject("readButton.Image")));
-            this.readButton.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.readButton.Name = "readButton";
-            this.readButton.Size = new System.Drawing.Size(75, 22);
-            this.readButton.Text = "&Перечитать";
+            this.rolesLabel.AutoSize = true;
+            this.rolesLabel.Location = new System.Drawing.Point(3, 0);
+            this.rolesLabel.Name = "rolesLabel";
+            this.rolesLabel.Size = new System.Drawing.Size(32, 13);
+            this.rolesLabel.TabIndex = 0;
+            this.rolesLabel.Text = "Роли";
             // 
             // UsersForm
             // 
@@ -383,13 +364,14 @@
             this.ShowInTaskbar = false;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "Пользователи";
+            this.Load += new System.EventHandler(this.Prepare);
             this.toolStrip.ResumeLayout(false);
             this.toolStrip.PerformLayout();
             this.splitContainer.Panel1.ResumeLayout(false);
             this.splitContainer.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer)).EndInit();
             this.splitContainer.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.usersGrid)).EndInit();
             this.tableLayoutPanel.ResumeLayout(false);
             this.fullNamePanel.ResumeLayout(false);
             this.fullNamePanel.PerformLayout();
@@ -411,9 +393,7 @@
         private System.Windows.Forms.ToolStrip toolStrip;
         private System.Windows.Forms.ToolStripButton transposeButton;
         private System.Windows.Forms.SplitContainer splitContainer;
-        private System.Windows.Forms.DataGridView dataGridView1;
-        private System.Windows.Forms.DataGridViewTextBoxColumn fullNameColumn;
-        private System.Windows.Forms.DataGridViewTextBoxColumn loginNameColumn;
+        private System.Windows.Forms.DataGridView usersGrid;
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanel;
         private System.Windows.Forms.Panel fullNamePanel;
         private System.Windows.Forms.TextBox fullNameBox;

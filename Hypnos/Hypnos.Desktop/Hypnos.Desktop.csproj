@@ -89,7 +89,9 @@
     <Compile Include="Forms\UsersForm.Designer.cs">
       <DependentUpon>UsersForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="Models\Administration\Entity.cs" />
     <Compile Include="Models\Administration\Role.cs" />
+    <Compile Include="Models\Administration\User.cs" />
     <Compile Include="Models\Auth\AuthResult.cs" />
     <Compile Include="Repositories\AdministrationRepository.cs" />
     <Compile Include="Repositories\AuthRepository.cs" />
@@ -104,6 +106,7 @@
     <Compile Include="Repositories\RepositoryBase.cs" />
     <Compile Include="Utils\AuthenticationUtility.cs" />
     <Compile Include="Utils\ExceptionsUtility.cs" />
+    <Compile Include="Utils\GridUtility.cs" />
     <Compile Include="Utils\HashUtility.cs" />
     <EmbeddedResource Include="Controls\ExceptionControl.resx">
       <DependentUpon>ExceptionControl.cs</DependentUpon>
@@ -121,6 +124,7 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Forms\UsersForm.resx">
       <DependentUpon>UsersForm.cs</DependentUpon>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>

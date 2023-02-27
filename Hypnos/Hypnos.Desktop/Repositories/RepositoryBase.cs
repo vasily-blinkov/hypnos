@@ -46,6 +46,26 @@ namespace Hypnos.Desktop.Repositories
             }
         }
 
+        /// <summary>
+        /// Executes reader authenticated.
+        /// </summary>
+        /// <remarks>
+        /// Adds the @token parameter to the end of the <paramref name="parameters"/>.
+        /// </remarks>
+        protected List<T> ExecuteReaderAuth<T>(
+            string procedureName,
+            Func<SqlDataReader, T> convert,
+            params SqlParameter[] parameters)
+        {
+            var length = (parameters?.Length).GetValueOrDefault();
+            var extendedParameters = new SqlParameter[length + 1];
+
+            Array.Copy(parameters, extendedParameters, length);
+            extendedParameters[extendedParameters.Length - 1] = new SqlParameter { ParameterName = "@token", Value = AuthenticationUtility.Token };
+
+            return ExecuteReader(procedureName, convert, extendedParameters);
+        }
+
         protected List<T> ExecuteReader<T>(
             string procedureName,
             Func<SqlDataReader, T> convert,
