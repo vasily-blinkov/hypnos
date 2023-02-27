@@ -339,6 +339,24 @@ AS BEGIN
 END
 GO
 
+-- Procedure: Hypnos.Administration.GetSignleUser
+/*
+EXEC Administration.GetSignleUser
+	@user_id = -32768,
+	@token = N'164D792CDD52A3859D81E2FCD4B6E4783A4F53479DBFFAC814BDE57D2D39ACF35807BD8EA69CFAE93300D51A92FE90DBEA7F96C1C39879B5161442DB20207187';
+*/
+PRINT N'Creating or altering procedure ''GetSignleUser''';
+CREATE OR ALTER PROCEDURE Administration.GetSignleUser
+	@user_id smallint,
+	@token nvarchar(128)
+AS BEGIN
+	EXEC Auth.ValidateToken @token = @token;
+	SELECT TOP(1)
+		u.FullName, u.LoginName, u.Description
+		FROM Administration.[User] u;
+END
+GO
+
 -- Hypnos.Management.
 IF SCHEMA_ID('Management') IS NULL
 BEGIN
