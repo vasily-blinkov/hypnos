@@ -71,6 +71,8 @@
     <Compile Include="Controls\ExceptionControl.Designer.cs">
       <DependentUpon>ExceptionControl.cs</DependentUpon>
     </Compile>
+    <Compile Include="Converters\ConvertRole.cs" />
+    <Compile Include="Converters\ConvertUser.cs" />
     <Compile Include="Forms\ExceptionForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -91,7 +93,8 @@
     </Compile>
     <Compile Include="Models\Administration\Entity.cs" />
     <Compile Include="Models\Administration\Role.cs" />
-    <Compile Include="Models\Administration\User.cs" />
+    <Compile Include="Models\Administration\User\UserForDetail.cs" />
+    <Compile Include="Models\Administration\User\UserForGrid.cs" />
     <Compile Include="Models\Auth\AuthResult.cs" />
     <Compile Include="Repositories\AdministrationRepository.cs" />
     <Compile Include="Repositories\AuthRepository.cs" />

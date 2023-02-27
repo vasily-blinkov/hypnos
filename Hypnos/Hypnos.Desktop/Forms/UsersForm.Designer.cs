@@ -167,13 +167,17 @@
             // 
             this.usersGrid.AllowUserToAddRows = false;
             this.usersGrid.AllowUserToDeleteRows = false;
+            this.usersGrid.AllowUserToResizeRows = false;
             this.usersGrid.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.usersGrid.Dock = System.Windows.Forms.DockStyle.Fill;
             this.usersGrid.Location = new System.Drawing.Point(0, 0);
+            this.usersGrid.MultiSelect = false;
             this.usersGrid.Name = "usersGrid";
             this.usersGrid.ReadOnly = true;
+            this.usersGrid.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
             this.usersGrid.Size = new System.Drawing.Size(176, 234);
             this.usersGrid.TabIndex = 0;
+            this.usersGrid.CellClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.LoadUser);
             // 
             // tableLayoutPanel
             // 

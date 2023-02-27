@@ -1,6 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Data.SqlClient;
+using System.Linq;
+using Hypnos.Desktop.Converters;
 using Hypnos.Desktop.Models.Administration;
+using Hypnos.Desktop.Models.Administration.User;
 
 namespace Hypnos.Desktop.Repositories
 {
@@ -12,29 +15,14 @@ namespace Hypnos.Desktop.Repositories
         /// Get roles.
         /// </summary>
         /// <param name="userId">If this is omitted, the stored procedure will return all the roles.</param>
-        public List<Role> GetRoles(short userId)
-        {
-            return ExecuteReaderAuth("GetRoles",
-                role => new Role
-                {
-                    ID = (short)role[nameof(Role.ID)],
-                    Name = (string)role[nameof(Role.Name)],
-                    Description = (string)role[nameof(Role.Description)]
-                },
-                new SqlParameter { ParameterName = "@user_id", Value = userId }
-            );
-        }
+        public List<Role> GetRoles(short userId) => ExecuteReaderAuth("GetRoles", ConvertRole.ByDefault,
+            new SqlParameter { ParameterName = "@user_id", Value = userId }
+        );
 
-        public List<User> GetUsers()
-        {
-            return ExecuteReaderAuth("GetUsers",
-                user => new User
-                {
-                    ID = (short)user[nameof(User.ID)],
-                    FullName = (string)user[nameof(User.FullName)],
-                    LoginName = (string)user[nameof(User.LoginName)]
-                }
-            );
-        }
+        public List<UserForGrid> GetUsers() => ExecuteReaderAuth("GetUsers", ConvertUser.ForGrid);
+
+        public UserForDetail GetSingleUser(short userId) => ExecuteReaderAuth("GetSignleUser", ConvertUser.ForDetail,
+            new SqlParameter { ParameterName = "@user_id", Value = userId }
+        ).Single();
     }
 }

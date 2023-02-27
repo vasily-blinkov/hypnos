@@ -1,8 +1,8 @@
 ﻿using System.ComponentModel;
 
-namespace Hypnos.Desktop.Models.Administration
+namespace Hypnos.Desktop.Models.Administration.User
 {
-    public class User : Entity
+    public class UserForGrid : Entity
     {
         [DisplayName("ФИО")]
         public string FullName { get; set; }
