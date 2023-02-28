@@ -30,8 +30,8 @@ namespace Hypnos.Desktop.Forms
         private void Prepare(object sender, EventArgs e)
         {
             FillGrid();
-            LoadUser();
             LoadRoles();
+            LoadUser();
         }
 
         private void FillGrid()
@@ -87,6 +87,8 @@ namespace Hypnos.Desktop.Forms
             }
 
             FillDetail(user);
+            FillRoles(userID);
+
             this.userID = userID;
         }
 
@@ -109,6 +111,26 @@ namespace Hypnos.Desktop.Forms
             descriptionBox.Text = user.Description;
         }
 
+        private void FillRoles(short userID)
+        {
+            List<Role> roles;
+
+            using (var repository = new AdministrationRepository())
+            {
+                roles = repository.GetRoles(userID);
+            }
+
+            rolesBoxes.UncheckAll();
+
+            for (var index = 0; index < roles.Count; index++)
+            {
+                if (roles.Any(r => r.ID == this.roles[index].ID))
+                {
+                    rolesBoxes.SetItemChecked(index, true);
+                }
+            }
+        }
+
         private void Refresh(object sender, EventArgs e)
         {
             FillGrid();
@@ -119,9 +141,13 @@ namespace Hypnos.Desktop.Forms
                 SelectRow(userID.Value);
             }
 
+            LoadRoles();
             LoadUser();
 
-            LoadRoles();
+            if (userID.HasValue)
+            {
+                FillRoles(userID.Value);
+            }
         }
 
         private void SelectRow(short userID)

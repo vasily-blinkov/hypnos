@@ -110,6 +110,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Repositories\RepositoryBase.cs" />
     <Compile Include="Utils\AuthenticationUtility.cs" />
+    <Compile Include="Utils\CheckedListBoxUtility.cs" />
     <Compile Include="Utils\ExceptionsUtility.cs" />
     <Compile Include="Utils\GridUtility.cs" />
     <Compile Include="Utils\HashUtility.cs" />
