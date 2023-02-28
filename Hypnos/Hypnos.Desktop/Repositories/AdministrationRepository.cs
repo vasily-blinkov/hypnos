@@ -11,10 +11,10 @@ namespace Hypnos.Desktop.Repositories
     {
         protected override string SchemaName => "Administration";
 
-        /// <summary>
-        /// Get roles.
-        /// </summary>
-        /// <param name="userId">If this is omitted, the stored procedure will return all the roles.</param>
+        /// <param name="userId">
+        /// If this is omitted, the stored procedure will return all the roles.
+        /// Otherwise only for the user with the specified ID
+        /// </param>
         public List<Role> GetRoles(short userId) => ExecuteReaderAuth("GetRoles", ConvertRole.ByDefault,
             new SqlParameter { ParameterName = "@user_id", Value = userId }
         );
