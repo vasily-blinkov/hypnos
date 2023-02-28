@@ -8,7 +8,7 @@ namespace Hypnos.Desktop.Forms
 {
     public partial class UsersForm : Form
     {
-        private short userID;
+        private short? userID;
 
         public UsersForm()
         {
@@ -25,6 +25,7 @@ namespace Hypnos.Desktop.Forms
         private void Prepare(object sender, EventArgs e)
         {
             FillGrid();
+            LoadUser();
         }
 
         private void FillGrid()
@@ -36,16 +37,42 @@ namespace Hypnos.Desktop.Forms
             }
         }
 
-        private void LoadUser(object sender, DataGridViewCellEventArgs e)
+        private void LoadUser()
         {
-            var idValue = usersGrid.Rows[e.RowIndex].Cells[nameof(UserForGrid.ID)].Value;
+            var selectedRows = usersGrid.SelectedRows;
 
-            if (!short.TryParse(idValue != null ? (string)idValue : string.Empty, out var userID) || userID == this.userID)
+            if (selectedRows.Count == 0)
             {
                 return;
             }
 
-            this.userID = userID;
+            LoadUser(selectedRows[0].Index);
+        }
+
+        private void LoadUser(object sender, DataGridViewCellEventArgs e)
+        {
+            LoadUser(e.RowIndex);
+        }
+
+        private void LoadUser(int rowIndex)
+        {
+            var userID = GetSelectedUserID(rowIndex);
+
+            if (!userID.HasValue)
+            {
+                return;
+            }
+
+            LoadUser(userID.Value);
+        }
+
+        private void LoadUser(short userID)
+        {
+            if (userID == this.userID)
+            {
+                return;
+            }
+
             UserForDetail user;
 
             using (var repository = new AdministrationRepository())
@@ -53,6 +80,24 @@ namespace Hypnos.Desktop.Forms
                 user = repository.GetSingleUser(userID);
             }
 
+            FillDetail(user);
+            this.userID = userID;
+        }
+
+        /// <returns>
+        /// ID of a selected user row in the grid view
+        /// </returns>
+        private short? GetSelectedUserID(int rowIndex)
+        {
+            var idValue = usersGrid.Rows[rowIndex].Cells[nameof(UserForGrid.ID)].Value;
+
+            return short.TryParse(idValue != null ? idValue.ToString() : string.Empty, out var userID)
+                ? userID
+                : (short?)null;
+        }
+
+        private void FillDetail(UserForDetail user)
+        {
             fullNameBox.Text = user.FullName;
             loginBox.Text = user.LoginName;
             descriptionBox.Text = user.Description;
