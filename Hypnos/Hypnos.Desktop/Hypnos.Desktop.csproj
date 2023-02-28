@@ -71,8 +71,10 @@
     <Compile Include="Controls\ExceptionControl.Designer.cs">
       <DependentUpon>ExceptionControl.cs</DependentUpon>
     </Compile>
+    <Compile Include="Converters\ConvertData.cs" />
     <Compile Include="Converters\ConvertRole.cs" />
     <Compile Include="Converters\ConvertUser.cs" />
+    <Compile Include="EqualityComparers\IdEqualityComparer.cs" />
     <Compile Include="Forms\ExceptionForm.cs">
       <SubType>Form</SubType>
     </Compile>

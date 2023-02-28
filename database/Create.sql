@@ -1,4 +1,5 @@
 -- This scripts creates the Hypnos database.
+-- To populate the database with sample data, execute Sample.sql.
 
 USE [master];
 

@@ -108,6 +108,7 @@
             this.readButton.Name = "readButton";
             this.readButton.Size = new System.Drawing.Size(75, 22);
             this.readButton.Text = "&Перечитать";
+            this.readButton.Click += new System.EventHandler(this.Refresh);
             // 
             // upsertButton
             // 

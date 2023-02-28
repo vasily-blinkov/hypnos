@@ -11,7 +11,7 @@ namespace Hypnos.Desktop.Converters
         {
             var detail = new UserForDetail();
             ForGrid(user, detail);
-            detail.Description = (string)user[nameof(UserForDetail.Description)];
+            detail.Description = ConvertData.ToString(user[nameof(UserForDetail.Description)]);
             return detail;
         }
 

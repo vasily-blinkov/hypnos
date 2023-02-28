@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Windows.Forms;
+using Hypnos.Desktop.EqualityComparers;
 using Hypnos.Desktop.Models.Administration.User;
 using Hypnos.Desktop.Repositories;
 using Hypnos.Desktop.Utils;
@@ -101,6 +102,31 @@ namespace Hypnos.Desktop.Forms
             fullNameBox.Text = user.FullName;
             loginBox.Text = user.LoginName;
             descriptionBox.Text = user.Description;
+        }
+
+        private void Refresh(object sender, EventArgs e)
+        {
+            FillGrid();
+
+            // Trying to select a row in the grid matching the currently displaying user in the detail panel.
+            if (userID.HasValue)
+            {
+                SelectRow(userID.Value);
+            }
+
+            LoadUser();
+        }
+
+        private void SelectRow(short userID)
+        {
+            var row = usersGrid.Rows.Find(nameof(UserForGrid.ID), userID, new IdEqualityComparer());
+
+            if (row == null)
+            {
+                return;
+            }
+
+            row.Selected = true;
         }
     }
 }
