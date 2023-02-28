@@ -15,9 +15,14 @@ namespace Hypnos.Desktop.Repositories
         /// If this is omitted, the stored procedure will return all the roles.
         /// Otherwise only for the user with the specified ID
         /// </param>
-        public List<Role> GetRoles(short userId) => ExecuteReaderAuth("GetRoles", ConvertRole.ByDefault,
-            new SqlParameter { ParameterName = "@user_id", Value = userId }
-        );
+        public List<Role> GetRoles(short? userId = null)
+        {
+            SqlParameter[] parameters = userId.HasValue
+                ? new[] { new SqlParameter { ParameterName = "@user_id", Value = userId } }
+                : new SqlParameter[0];
+
+            return ExecuteReaderAuth("GetRoles", ConvertRole.ByDefault, parameters);
+        }
 
         public List<UserForGrid> GetUsers() => ExecuteReaderAuth("GetUsers", ConvertUser.ForGrid);
 

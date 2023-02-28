@@ -337,10 +337,6 @@
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.rolesBoxes.FormattingEnabled = true;
-            this.rolesBoxes.Items.AddRange(new object[] {
-            "Администратор",
-            "Руководитель",
-            "Сотрудник"});
             this.rolesBoxes.Location = new System.Drawing.Point(6, 16);
             this.rolesBoxes.Name = "rolesBoxes";
             this.rolesBoxes.Size = new System.Drawing.Size(105, 109);

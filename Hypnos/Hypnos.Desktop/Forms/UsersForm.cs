@@ -1,6 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Windows.Forms;
 using Hypnos.Desktop.EqualityComparers;
+using Hypnos.Desktop.Models.Administration;
 using Hypnos.Desktop.Models.Administration.User;
 using Hypnos.Desktop.Repositories;
 using Hypnos.Desktop.Utils;
@@ -10,6 +13,7 @@ namespace Hypnos.Desktop.Forms
     public partial class UsersForm : Form
     {
         private short? userID;
+        private List<Role> roles;
 
         public UsersForm()
         {
@@ -27,6 +31,7 @@ namespace Hypnos.Desktop.Forms
         {
             FillGrid();
             LoadUser();
+            LoadRoles();
         }
 
         private void FillGrid()
@@ -115,6 +120,8 @@ namespace Hypnos.Desktop.Forms
             }
 
             LoadUser();
+
+            LoadRoles();
         }
 
         private void SelectRow(short userID)
@@ -127,6 +134,17 @@ namespace Hypnos.Desktop.Forms
             }
 
             row.Selected = true;
+        }
+
+        private void LoadRoles()
+        {
+            using (var repository = new AdministrationRepository())
+            {
+                roles = repository.GetRoles();
+            }
+
+            rolesBoxes.Items.Clear();
+            rolesBoxes.Items.AddRange(roles.Select(r => r.Name).ToArray());
         }
     }
 }
