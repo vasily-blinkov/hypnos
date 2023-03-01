@@ -393,14 +393,58 @@ CREATE OR ALTER PROCEDURE Administration.AddUser
 AS BEGIN
 	EXEC Auth.ValidateToken @token = @token;
 	DECLARE @user_id smallint;
-	SELECT @user_id = s.UserID FROM Auth.[Session] s
-		WHERE s.Token = @token;
+	SELECT @user_id = s.UserID FROM Auth.[Session] s WHERE s.Token = @token;
 	INSERT INTO Administration.[User] (FullName, LoginName, PasswordHash, Description, CreatedBy, UpdatedBy, IsDeleted)
 		SELECT j.FullName, j.LoginName, j.PasswordHash, j.Description, @user_id CreatedBy, @user_id UpdatedBy, 0 IsDeleted
 		FROM OpenJson(@user_json)
 		WITH (FullName Name, LoginName Name, PasswordHash nvarchar(128), Description Description) AS j
 END
 GO
+
+-- Procedure: Hypnos.Administration.UpdateUser
+/*
+DECLARE @password_hash nvarchar(128) = Convert(nvarchar(128), HashBytes('SHA2_512', N'woTdzTfu5VUxUjtnr8fJ' + N'seed'), 2),
+	@token nvarchar(128),
+	@user_id smallint;
+EXEC Auth.Authenticate @login_name = N'seed', @password_hash = @password_hash, @token = @token OUTPUT, @user_id = @user_id OUTPUT;
+PRINT 'Token: ' + @token;
+DECLARE @user_json nvarchar(max) = N'{
+	"ID": -32766,
+	"FullName": "София Волкова",
+	"LoginName": "sa1",
+	"Description": "Системная администраторша"
+}';
+EXEC Administration.EditUser
+	@user_json = @user_json,
+	@token = N'E05FD47812F9F4808BD76035A3BF531730FA81593266835D73B00BE3C0866CA087BF7A62AFF40CB5050E41CD4B84EB055F9F7B0731224E2C4190051A5B8D66AA';
+UPDATE Administration.[User]
+	SET FullName = json.FullName
+	FROM (
+		SELECT j.ID, j.FullName
+		FROM OpenJson(N'{ "ID": -32766, "FullName": "Волкова София 4" }')
+		WITH (ID smallint, FullName Name) AS j
+	) AS json
+	WHERE Administration.[User].ID = json.ID;
+*/
+PRINT N'Creating or altering procedure ''EditUser''';
+CREATE OR ALTER PROCEDURE Administration.EditUser
+	@user_json nvarchar(max),
+	@token nvarchar(128)
+AS BEGIN
+	EXEC Auth.ValidateToken @token = @token;
+	DECLARE @user_id smallint;
+	SELECT @user_id = s.UserID FROM Auth.[Session] s WHERE s.Token = @token;
+	UPDATE Administration.[User]
+		SET FullName = json.FullName, LoginName = json.LoginName, Description = json.Description, UpdatedBy = @user_id, UpdatedDate = GetDate()
+		FROM (
+			SELECT j.ID, j.FullName, j.LoginName, j.Description
+			FROM OpenJson(@user_json)
+			WITH (ID smallint, FullName Name, LoginName Name, Description Description) AS j
+		) AS json
+		WHERE Administration.[User].ID = json.ID;
+END
+GO
+
 
 -- Hypnos.Management.
 IF SCHEMA_ID('Management') IS NULL
