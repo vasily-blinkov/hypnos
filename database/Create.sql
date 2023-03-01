@@ -348,8 +348,9 @@ GO
 -- Procedure: Hypnos.Administration.GetSignleUser
 /*
 EXEC Administration.GetSignleUser
-	@user_id = -32768,
-	@token = N'AE784183CAE84E08F7F5B8E2D460B2843266D779FAF888424DD8DE178AE02D163E712121395451F491BD1DC5F12C9081258603276E7F403AE6406428BC92D12C';
+	--@user_id = -32768,
+	@user_id = -32767,
+	@token = N'75771CC84FFAFCCAFEEB8F4D5C815403EBD91754020F0F72ABE247A80CD804C0F86854C59A2A42892E4C906189DD94AEC89ECC1C78EF92A9044EFA96C978FE05';
 */
 PRINT N'Creating or altering procedure ''GetSignleUser''';
 CREATE OR ALTER PROCEDURE Administration.GetSignleUser
@@ -361,6 +362,43 @@ AS BEGIN
 		u.ID, u.FullName, u.LoginName, u.Description
 		FROM Administration.[User] u
 		WHERE u.ID = @user_id;
+END
+GO
+
+-- Procedure: Hypnos.Administration.AddUser
+/*
+DECLARE @user_json nvarchar(max) = N'{
+	"FullName": "Волкова София",
+	"LoginName": "sa",
+	"PasswordHash": "' + Convert(nvarchar(128), HashBytes('sha2_512', N'woTdzTfu5VUxUjtnr8fJ' + '2'), 2) + '",
+	"Description": "Системный администратор"
+}';
+EXEC Administration.AddUser
+	@user_json = @user_json,
+	@token = N'2C7E8109F6A9329594A3750F43E622044BB34201E26583A299314872AFB62D25C8B842B4B47990389B4BE93DD9525FF4E395E4565EFF12893E3E8C9C44432794';
+SELECT Convert(nvarchar(128), HashBytes('sha2_512', N'woTdzTfu5VUxUjtnr8fJ' + '2'), 2);
+SELECT j.FullName, LoginName, PasswordHash, Description, -32768 CreatedBy
+	FROM OpenJson(N'{
+		"FullName": "Волкова София",
+		"LoginName": "sa",
+		"PasswordHash": "' + Convert(nvarchar(128), HashBytes('sha2_512', N'woTdzTfu5VUxUjtnr8fJ' + '2'), 2) + '",
+		"Description": "Системный администратор"
+	}')
+	WITH (FullName Name, LoginName Name, PasswordHash nvarchar(128), Description Description) AS j;
+*/
+PRINT N'Creating or altering procedure ''AddUser''';
+CREATE OR ALTER PROCEDURE Administration.AddUser
+	@user_json nvarchar(max),
+	@token nvarchar(128)
+AS BEGIN
+	EXEC Auth.ValidateToken @token = @token;
+	DECLARE @user_id smallint;
+	SELECT @user_id = s.UserID FROM Auth.[Session] s
+		WHERE s.Token = @token;
+	INSERT INTO Administration.[User] (FullName, LoginName, PasswordHash, Description, CreatedBy, UpdatedBy, IsDeleted)
+		SELECT j.FullName, j.LoginName, j.PasswordHash, j.Description, @user_id CreatedBy, @user_id UpdatedBy, 0 IsDeleted
+		FROM OpenJson(@user_json)
+		WITH (FullName Name, LoginName Name, PasswordHash nvarchar(128), Description Description) AS j
 END
 GO
 
