@@ -9,20 +9,46 @@ BEGIN
 	-- Getting the ID of the initial user.
 	DECLARE @seed_id smallint;
 	SELECT @seed_id = u.ID FROM Administration.[User] u WHERE u.LoginName = N'seed';
+
+	-- Variables for reuse.
+	DECLARE @token nvarchar(128),
+		@user_id smallint,
+		@password_hash nvarchar(128) = Convert(nvarchar(128), HashBytes('SHA2_512', N'woTdzTfu5VUxUjtnr8fJ' + N'seed'), 2),
+		@user_json nvarchar(max);
+	
+	-- Authenticate to be able to call stored procedures to simplify inserts.
+	EXEC Auth.Authenticate
+		@login_name = N'seed',
+		@password_hash = @password_hash,
+		@token = @token OUTPUT,
+		@user_id = @user_id OUTPUT;
 	
 	-- Adding the director.
 	IF NOT EXISTS(SELECT 1 FROM Administration.[User] u WHERE u.LoginName = N'ceo')
 	BEGIN
-		INSERT INTO Administration.[User]
-			(FullName, LoginName, PasswordHash, Description, CreatedBy, UpdatedBy)
-		VALUES (
-			N'Архипова Василиса',
-			N'ceo',
-			Convert(nvarchar(128), HashBytes('sha2_512', N'woTdzTfu5VUxUjtnr8fJ' + '1'), 2),
-			N'Директор',
-			@seed_id,
-			@seed_id
-		);
+		SET @user_json = N'{
+			"FullName": "Архипова Василиса",
+			"LoginName": "ceo",
+			"PasswordHash": "' + Convert(nvarchar(128), HashBytes('sha2_512', N'woTdzTfu5VUxUjtnr8fJ' + '1'), 2) + '",
+			"Description": "Директор"
+		}';
+		EXEC Administration.AddUser
+			@user_json = @user_json,
+			@token = @token;
+	END
+	
+	-- Adding the system administrator.
+	IF NOT EXISTS(SELECT 1 FROM Administration.[User] u WHERE u.LoginName = N'sa')
+	BEGIN
+		SET @user_json = N'{
+			"FullName": "Волкова София",
+			"LoginName": "sa",
+			"PasswordHash": "' + Convert(nvarchar(128), HashBytes('sha2_512', N'woTdzTfu5VUxUjtnr8fJ' + '2'), 2) + '",
+			"Description": "Системный администратор"
+		}';
+		EXEC Administration.AddUser
+			@user_json = @user_json,
+			@token = @token;
 	END
 	
 	-- IDs of the roles.
@@ -52,5 +78,8 @@ BEGIN
 	IF NOT EXISTS(SELECT 1 FROM Administration.UserRole ur WHERE ur.UserID = @ceo_id AND ur.RoleID = @worker_id)
 		INSERT INTO Administration.UserRole (UserID, RoleID, CreatedBy, UpdatedBy)
 		VALUES (@ceo_id, @worker_id, @seed_id, @seed_id);
+	
+	-- Log out user with login 'seed'.
+	EXEC Auth.LogOut @token = @token;
 
 END
