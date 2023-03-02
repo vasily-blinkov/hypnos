@@ -225,16 +225,13 @@ GO
 
 -- Procedure: Hypnos.Auth.Authenticate.
 /*
-DECLARE @token nvarchar(128),
+DECLARE @password_hash nvarchar(128) = Convert(nvarchar(128), HashBytes('SHA2_512', N'woTdzTfu5VUxUjtnr8fJ' + N'2'), 2),
+	@token nvarchar(128),
 	@user_id smallint;
-DECLARE @password_hash nvarchar(128) = Convert(nvarchar(128), HashBytes('SHA2_512', N'woTdzTfu5VUxUjtnr8fJ' + N'seed'), 2);
-EXEC Auth.Authenticate
-	@login_name = N'seed',
-	@password_hash = @password_hash,
-	@token = @token OUTPUT,
-	@user_id = @user_id OUTPUT;
-PRINT 'userId: ' + Convert(nvarchar(6), @user_id);
-PRINT 'token: ' + @token;
+EXEC Auth.Authenticate @login_name = N'sa1', @password_hash = @password_hash, @token = @token OUTPUT, @user_id = @user_id OUTPUT;
+PRINT N'
+User ID: ' + IIF(@user_id IS NULL, N'<not found>', Convert(nvarchar(6), @user_id)) + N'
+Token: ' + ISNULL(@token, N'<unauthorized>');
 */
 PRINT N'Creating or altering procedure ''Authenticate''';
 CREATE OR ALTER PROCEDURE Auth.Authenticate 
@@ -406,17 +403,20 @@ GO
 DECLARE @password_hash nvarchar(128) = Convert(nvarchar(128), HashBytes('SHA2_512', N'woTdzTfu5VUxUjtnr8fJ' + N'2'), 2),
 	@token nvarchar(128),
 	@user_id smallint;
-EXEC Auth.Authenticate @login_name = N'sa1', @password_hash = @password_hash, @token = @token OUTPUT, @user_id = @user_id OUTPUT;
-PRINT 'Token: ' + @token;
+EXEC Auth.Authenticate @login_name = N'sa', @password_hash = @password_hash, @token = @token OUTPUT, @user_id = @user_id OUTPUT;
+PRINT N'
+User ID: ' + IIF(@user_id IS NULL, N'<not found>', Convert(nvarchar(6), @user_id)) + N'
+Token: ' + ISNULL(@token, N'<unauthorized>');
 DECLARE @user_json nvarchar(max) = N'{
 	"ID": -32766,
 	"LoginName": "sa",
-	"Description": "Системный администратор",
+	"Description": "Системная администраторша",
+	"PasswordHash": "' + Convert(nvarchar(128), HashBytes('SHA2_512', N'woTdzTfu5VUxUjtnr8fJ' + N'2'), 2) + N'",
 	"FullName": "Волкова София"
 }';
 EXEC Administration.EditUser
 	@user_json = @user_json,
-	@token = N'01E218B4F905DB080BE6164D7E1BB1C0630DA6559AA89A53E6D1C9CE7502BDDA3C9A9F40D3A0883C93967A420BC1BC2DE373CF0D75E8C92BAD864CF6FDDCFC64';
+	@token = N'FD82D8413034D2708C0EE405E4F0B111829642C8DE3504E8AA7B24C50E33C4E8FBD5082B49A9F70B3F1AF2802B1797E753762C1F15DD871500DE60CD597E2529';
 UPDATE Administration.[User]
 	SET FullName = json.FullName
 	FROM (
@@ -425,6 +425,7 @@ UPDATE Administration.[User]
 		WITH (ID smallint, FullName Name) AS j
 	) AS json
 	WHERE Administration.[User].ID = json.ID;
+SELECT Convert(nvarchar(128), HashBytes('SHA2_512', N'woTdzTfu5VUxUjtnr8fJ' + N'1'), 2);
 */
 PRINT N'Creating or altering procedure ''EditUser''';
 CREATE OR ALTER PROCEDURE Administration.EditUser
@@ -439,12 +440,13 @@ AS BEGIN
 			FullName = ISNULL(json.FullName, Administration.[User].FullName),
 			LoginName = ISNULL(json.LoginName, Administration.[User].LoginName),
 			Description = ISNULL(json.Description, Administration.[User].Description),
+			PasswordHash = ISNULL(json.PasswordHash, Administration.[User].PasswordHash),
 			UpdatedBy = @user_id,
 			UpdatedDate = GetDate()
 		FROM (
-			SELECT j.ID, j.FullName, j.LoginName, j.Description
+			SELECT j.ID, j.FullName, j.LoginName, j.Description, j.PasswordHash
 			FROM OpenJson(@user_json)
-			WITH (ID smallint, FullName Name, LoginName Name, Description Description) AS j
+			WITH (ID smallint, FullName Name, LoginName Name, Description Description, PasswordHash nvarchar(128)) AS j
 		) AS json
 		WHERE Administration.[User].ID = json.ID;
 END
