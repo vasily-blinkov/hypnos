@@ -67,13 +67,16 @@ END
 GO
 
 -- Hypnos.Administration.User.
+/*
+USE master; DROP DATABASE Hypnos;
+*/
 IF OBJECT_ID('Administration.User') IS NULL
 BEGIN
 	PRINT N'Creating table ''User''.'
 	CREATE TABLE Administration.[User] (
 		ID smallint IDENTITY(-32768, 1) PRIMARY KEY NOT NULL,
 		FullName Name NOT NULL,
-		LoginName Name NOT NULL/* UNIQUE*/,
+		LoginName Name NOT NULL UNIQUE,
 		PasswordHash nvarchar(128) NOT NULL,
 		Description Description,
 		CreatedBy smallint FOREIGN KEY REFERENCES Administration.[User](ID) NOT NULL,
@@ -90,6 +93,15 @@ BEGIN
 END
 GO
 
+-- IX_User_FullName (Hypnos.Administration).
+IF NOT EXISTS(SELECT 1 FROM sys.indexes i WHERE i.name = N'IX_User_FullName')
+BEGIN
+	PRINT 'Creating index ''IX_User_FullName''.';
+	CREATE NONCLUSTERED INDEX IX_User_FullName
+		ON Administration.[User] (FullName);
+END
+GO
+
 -- Hypnos.Administration.User: seed.
 /*
 SELECT Convert(nvarchar(128), HashBytes('sha2_512', N'woTdzTfu5VUxUjtnr8fJ' + '1'), 2);
@@ -98,14 +110,12 @@ IF NOT EXISTS(SELECT * FROM Administration.[User] u WHERE u.ID = -32768)
 BEGIN
 	PRINT 'Creating user ''seed'' (password: seed).';
 	DECLARE @password_salt nvarchar(20) = N'woTdzTfu5VUxUjtnr8fJ';
-	SET IDENTITY_INSERT Administration.[User] ON;
-	INSERT INTO Administration.[User](ID, FullName, LoginName, PasswordHash, CreatedBy, UpdatedBy)
+	INSERT INTO Administration.[User](FullName, LoginName, PasswordHash, CreatedBy, UpdatedBy)
 	VALUES(
-		-32768, N'Seed', N'seed',
+		N'Seed', N'seed',
 		CONVERT(nvarchar(128), HashBytes('sha2_512', @password_salt + 'seed'), 2),
 		-32768, -32768
 	);
-	SET IDENTITY_INSERT Administration.[User] OFF;
 END
 GO
 
@@ -131,12 +141,10 @@ GO
 IF NOT EXISTS(SELECT * FROM Administration.[Role] r WHERE r.ID = -32768)
 BEGIN
 	PRINT 'Creating role ''Администратор''.';
-	SET IDENTITY_INSERT Administration.[Role] ON;
-	INSERT INTO Administration.[Role](ID, Name, Description, CreatedBy, UpdatedBy)
-	VALUES(-32768, N'Администратор',
-		N'Управление учётными данными пользователей',
-		-32768, -32768);
-	SET IDENTITY_INSERT Administration.[User] OFF;
+	DECLARE @user_id smallint;
+	SELECT @user_id = u.ID FROM Administration.[User] u WHERE u.LoginName = N'seed';
+	INSERT INTO Administration.[Role](Name, Description, CreatedBy, UpdatedBy)
+		VALUES(N'Администратор', N'Управление учётными данными пользователей', @user_id, @user_id);
 END
 GO
 
@@ -144,12 +152,10 @@ GO
 IF NOT EXISTS(SELECT * FROM Administration.[Role] u WHERE u.ID = -32767)
 BEGIN
 	PRINT 'Creating role ''Руководитель''.';
-	SET IDENTITY_INSERT Administration.[Role] ON;
-	INSERT INTO Administration.[Role](ID, Name, Description, CreatedBy, UpdatedBy)
-	VALUES(-32767, N'Руководитель',
-		N'Управление рабочими процессами',
-		-32768, -32768);
-	SET IDENTITY_INSERT Administration.[User] OFF;
+	DECLARE @user_id smallint;
+	SELECT @user_id = u.ID FROM Administration.[User] u WHERE u.LoginName = N'seed';
+	INSERT INTO Administration.[Role](Name, Description, CreatedBy, UpdatedBy)
+		VALUES(N'Руководитель', N'Управление рабочими процессами', @user_id, @user_id);
 END
 GO
 
@@ -157,12 +163,10 @@ GO
 IF NOT EXISTS(SELECT * FROM Administration.[Role] u WHERE u.ID = -32766)
 BEGIN
 	PRINT 'Creating role ''Специалист''.';
-	SET IDENTITY_INSERT Administration.[Role] ON;
-	INSERT INTO Administration.[Role](ID, Name, Description, CreatedBy, UpdatedBy)
-	VALUES(-32766, N'Специалист',
-		N'Ведение рабочих нагрузок',
-		-32768, -32768);
-	SET IDENTITY_INSERT Administration.[User] OFF;
+	DECLARE @user_id smallint;
+	SELECT @user_id = u.ID FROM Administration.[User] u WHERE u.LoginName = N'seed';
+	INSERT INTO Administration.[Role](Name, Description, CreatedBy, UpdatedBy)
+		VALUES(N'Специалист', N'Ведение рабочих нагрузок', @user_id, @user_id);
 END
 GO
 
@@ -410,13 +414,13 @@ Token: ' + ISNULL(@token, N'<unauthorized>');
 DECLARE @user_json nvarchar(max) = N'{
 	"ID": -32766,
 	"LoginName": "sa",
-	"Description": "Системная администраторша",
+	"Description": "Системный администратор",
 	"PasswordHash": "' + Convert(nvarchar(128), HashBytes('SHA2_512', N'woTdzTfu5VUxUjtnr8fJ' + N'2'), 2) + N'",
 	"FullName": "Волкова София"
 }';
 EXEC Administration.EditUser
 	@user_json = @user_json,
-	@token = N'FD82D8413034D2708C0EE405E4F0B111829642C8DE3504E8AA7B24C50E33C4E8FBD5082B49A9F70B3F1AF2802B1797E753762C1F15DD871500DE60CD597E2529';
+	@token = N'708604B27C16E411826298E0BCE39373E4C9FA0D7E5B5225F10A45AFD894DC533D53574F3D70EAFAB5A761670C36CDB62CC50A8D6F55CF27683C6B375A4A59BB';
 UPDATE Administration.[User]
 	SET FullName = json.FullName
 	FROM (
