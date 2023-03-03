@@ -38,7 +38,7 @@ namespace Hypnos.Desktop.Forms
         {
             using (var repository = new AdministrationRepository())
             {
-                usersGrid.DataSource = repository.GetUsers();
+                usersGrid.DataSource = repository.GetUsers(filterBox.Text);
                 GridUtility.Setup(usersGrid);
             }
         }

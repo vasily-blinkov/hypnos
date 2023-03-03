@@ -24,7 +24,14 @@ namespace Hypnos.Desktop.Repositories
             return ExecuteReaderAuth("GetRoles", ConvertRole.ByDefault, parameters);
         }
 
-        public List<UserForGrid> GetUsers() => ExecuteReaderAuth("GetUsers", ConvertUser.ForGrid);
+        public List<UserForGrid> GetUsers(string query = null)
+        {
+            SqlParameter[] parameters = !string.IsNullOrWhiteSpace(query)
+                ? new[] { new SqlParameter { ParameterName = "@query", Value = query } }
+                : new SqlParameter[0];
+
+            return ExecuteReaderAuth("GetUsers", ConvertUser.ForGrid, parameters);
+        }
 
         public UserForDetail GetSingleUser(short userId) => ExecuteReaderAuth("GetSignleUser", ConvertUser.ForDetail,
             new SqlParameter { ParameterName = "@user_id", Value = userId }

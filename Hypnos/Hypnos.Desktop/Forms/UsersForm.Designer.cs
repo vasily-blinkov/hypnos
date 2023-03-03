@@ -55,6 +55,9 @@
             this.rolesPanel = new System.Windows.Forms.Panel();
             this.rolesBoxes = new System.Windows.Forms.CheckedListBox();
             this.rolesLabel = new System.Windows.Forms.Label();
+            this.masterDetailsSeparator = new System.Windows.Forms.ToolStripSeparator();
+            this.filterLabel = new System.Windows.Forms.ToolStripLabel();
+            this.filterBox = new System.Windows.Forms.ToolStripTextBox();
             this.toolStrip.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer)).BeginInit();
             this.splitContainer.Panel1.SuspendLayout();
@@ -72,9 +75,12 @@
             // toolStrip
             // 
             this.toolStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.filterLabel,
+            this.filterBox,
+            this.readButton,
+            this.masterDetailsSeparator,
             this.crudLabel,
             this.createButton,
-            this.readButton,
             this.upsertButton,
             this.deleteButton,
             this.transposeButton,
@@ -106,8 +112,8 @@
             this.readButton.Image = ((System.Drawing.Image)(resources.GetObject("readButton.Image")));
             this.readButton.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.readButton.Name = "readButton";
-            this.readButton.Size = new System.Drawing.Size(75, 22);
-            this.readButton.Text = "&Перечитать";
+            this.readButton.Size = new System.Drawing.Size(65, 22);
+            this.readButton.Text = "О&бновить";
             this.readButton.Click += new System.EventHandler(this.Refresh);
             // 
             // upsertButton
@@ -175,6 +181,7 @@
             this.usersGrid.MultiSelect = false;
             this.usersGrid.Name = "usersGrid";
             this.usersGrid.ReadOnly = true;
+            this.usersGrid.RowHeadersVisible = false;
             this.usersGrid.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
             this.usersGrid.Size = new System.Drawing.Size(176, 234);
             this.usersGrid.TabIndex = 0;
@@ -351,6 +358,23 @@
             this.rolesLabel.TabIndex = 0;
             this.rolesLabel.Text = "Роли";
             // 
+            // masterDetailsSeparator
+            // 
+            this.masterDetailsSeparator.Name = "masterDetailsSeparator";
+            this.masterDetailsSeparator.Size = new System.Drawing.Size(6, 25);
+            // 
+            // filterLabel
+            // 
+            this.filterLabel.Name = "filterLabel";
+            this.filterLabel.Size = new System.Drawing.Size(45, 22);
+            this.filterLabel.Text = "Поиск:";
+            // 
+            // filterBox
+            // 
+            this.filterBox.Font = new System.Drawing.Font("Segoe UI", 9F);
+            this.filterBox.Name = "filterBox";
+            this.filterBox.Size = new System.Drawing.Size(100, 25);
+            // 
             // UsersForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -417,5 +441,8 @@
         private System.Windows.Forms.ToolStripButton readButton;
         private System.Windows.Forms.ToolStripButton upsertButton;
         private System.Windows.Forms.ToolStripButton deleteButton;
+        private System.Windows.Forms.ToolStripLabel filterLabel;
+        private System.Windows.Forms.ToolStripTextBox filterBox;
+        private System.Windows.Forms.ToolStripSeparator masterDetailsSeparator;
     }
 }
