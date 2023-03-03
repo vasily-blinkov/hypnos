@@ -14,6 +14,18 @@ GO
 
 USE [Hypnos];
 
+-- To prevent unauthorized access to data in the tables, I create a role allowing only to execute stored procedures.
+IF DATABASE_PRINCIPAL_ID('executor') IS NULL
+BEGIN
+	PRINT N'Setting up role ''executor''.';
+	CREATE ROLE executor;
+	GRANT EXECUTE TO executor;
+END
+
+-- TODO: CREATE LOGIN executor WITH PASSWORD = N'Ver$1l0Ff';
+-- TODO: CREATE USER executor FOR LOGIN executor;
+-- TODO: connectionString="Persist Security Info=False;User ID=executor;Password=Ver$1l0Ff;Initial Catalog=Hypnos;Server=localhost;"
+
 -- Data Type: Name.
 IF TYPE_ID('dbo.Name') IS NULL
 BEGIN
