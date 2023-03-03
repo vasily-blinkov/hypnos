@@ -334,15 +334,25 @@ GO
 
 -- Procedure: Hypnos.Administration.GetUsers
 /*
+DECLARE @token nvarchar(128), @user_id smallint;
+EXEC Auth.Authenticate
+	@login_name = N'sa',
+	@password_hash = N'117F2E2FCCF33CBF62C17363B4AE91521C35A60320D09642D0954993FA5B712D78F6781AC4C8A6FB8418A7F440E7E5BBCF4DE001088E0D4E7DB4599916BC88F0',
+	@token = @token OUTPUT,
+	@user_id = @user_id OUTPUT;
+PRINT N'Token: ' + @token;
 EXEC Administration.GetUsers
-	@token = N'2F0B7166586402CB3038807CA18E8EDC0E5E1FAF3603B2E84F5F19BB2C0B4AC32C6F29720469E5AB400E0EE338971469E94D01B66498F1A4AB27EB85B3A3B698';
+	@token = N'2EC22F23DF896B3A391CEF6AF511D076EF4C5989F4DCA1B397EDAE2CB28CE2F8112ADFCA6025D5A4C7DD2DA7F89D0044E35E6DF86C31DD1A8FCAB98A942C09AB',
+	@query = N's';
  */
 PRINT N'Creating or altering procedure ''GetUsers''';
 CREATE OR ALTER PROCEDURE Administration.GetUsers
+	@query Name = NULL,
 	@token nvarchar(128)
 AS BEGIN
 	EXEC Auth.ValidateToken @token = @token;
-	SELECT u.ID, u.FullName, u.LoginName FROM Administration.[User] u;
+	SELECT u.ID, u.FullName, u.LoginName FROM Administration.[User] u
+		WHERE @query IS NULL OR u.LoginName LIKE N'%' + @query + '%' OR u.FullName LIKE N'%' + @query + '%';
 END
 GO
 
