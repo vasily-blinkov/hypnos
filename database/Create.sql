@@ -427,70 +427,33 @@ END
 GO
 
 -- Procedure: Hypnos.Administration.AddUser
-/*
-DECLARE @user_json nvarchar(max) = N'{
-	"FullName": "Волкова София",
-	"LoginName": "sa",
-	"PasswordHash": "' + Convert(nvarchar(128), HashBytes('sha2_512', N'woTdzTfu5VUxUjtnr8fJ' + '2'), 2) + '",
-	"Description": "Системный администратор"
-}';
-EXEC Administration.AddUser
-	@user_json = @user_json,
-	@token = N'2C7E8109F6A9329594A3750F43E622044BB34201E26583A299314872AFB62D25C8B842B4B47990389B4BE93DD9525FF4E395E4565EFF12893E3E8C9C44432794';
-SELECT Convert(nvarchar(128), HashBytes('sha2_512', N'woTdzTfu5VUxUjtnr8fJ' + '2'), 2);
-SELECT j.FullName, LoginName, PasswordHash, Description, -32768 CreatedBy
-	FROM OpenJson(N'{
-		"FullName": "Волкова София",
-		"LoginName": "sa",
-		"PasswordHash": "' + Convert(nvarchar(128), HashBytes('sha2_512', N'woTdzTfu5VUxUjtnr8fJ' + '2'), 2) + '",
-		"Description": "Системный администратор"
-	}')
-	WITH (FullName Name, LoginName Name, PasswordHash nvarchar(128), Description Description) AS j;
-*/
 PRINT N'Creating or altering procedure ''AddUser''';
 CREATE OR ALTER PROCEDURE Administration.AddUser
 	@user_json nvarchar(max),
 	@token nvarchar(128)
 AS BEGIN
 	EXEC Auth.ValidateToken @token = @token;
+	-- Current user ID.
 	DECLARE @user_id smallint;
 	SELECT @user_id = s.UserID FROM Auth.[Session] s WHERE s.Token = @token;
-	INSERT INTO Administration.[User] (FullName, LoginName, PasswordHash, Description, CreatedBy, UpdatedBy, IsDeleted)
-		SELECT j.FullName, j.LoginName, j.PasswordHash, j.Description, @user_id CreatedBy, @user_id UpdatedBy, 0 IsDeleted
+	-- Inserting a user.
+	DECLARE @user TABLE(ID smallint);
+	INSERT Administration.[User] (FullName, LoginName, PasswordHash, Description, CreatedBy, UpdatedBy)
+		OUTPUT INSERTED.ID INTO @user
+		SELECT j.FullName, j.LoginName, j.PasswordHash, j.Description, @user_id CreatedBy, @user_id UpdatedBy
 		FROM OpenJson(@user_json)
 		WITH (FullName Name, LoginName Name, PasswordHash nvarchar(128), Description Description) AS j
+	-- Inserted user ID.
+	DECLARE @new_id smallint;
+	SELECT @new_id = u.ID FROM @user u;
+	-- Inserting roles.
+	INSERT Administration.UserRole (UserID, RoleID, CreatedBy, UpdatedBy)
+		SELECT @new_id, j.value, @user_id, @user_id
+		FROM OpenJson(@user_json, N'$.Roles') j;
 END
 GO
 
 -- Procedure: Hypnos.Administration.UpdateUser
-/*
-DECLARE @password_hash nvarchar(128) = Convert(nvarchar(128), HashBytes('SHA2_512', N'woTdzTfu5VUxUjtnr8fJ' + N'2'), 2),
-	@token nvarchar(128),
-	@user_id smallint;
-EXEC Auth.Authenticate @login_name = N'sa', @password_hash = @password_hash, @token = @token OUTPUT, @user_id = @user_id OUTPUT;
-PRINT N'
-User ID: ' + IIF(@user_id IS NULL, N'<not found>', Convert(nvarchar(6), @user_id)) + N'
-Token: ' + ISNULL(@token, N'<unauthorized>');
-DECLARE @user_json nvarchar(max) = N'{
-	"ID": -32766,
-	"LoginName": "sa",
-	"Description": "Системный администратор",
-	"PasswordHash": "' + Convert(nvarchar(128), HashBytes('SHA2_512', N'woTdzTfu5VUxUjtnr8fJ' + N'2'), 2) + N'",
-	"FullName": "Волкова София"
-}';
-EXEC Administration.EditUser
-	@user_json = @user_json,
-	@token = N'708604B27C16E411826298E0BCE39373E4C9FA0D7E5B5225F10A45AFD894DC533D53574F3D70EAFAB5A761670C36CDB62CC50A8D6F55CF27683C6B375A4A59BB';
-UPDATE Administration.[User]
-	SET FullName = json.FullName
-	FROM (
-		SELECT j.ID, j.FullName
-		FROM OpenJson(N'{ "ID": -32766, "FullName": "Волкова София 4" }')
-		WITH (ID smallint, FullName Name) AS j
-	) AS json
-	WHERE Administration.[User].ID = json.ID;
-SELECT Convert(nvarchar(128), HashBytes('SHA2_512', N'woTdzTfu5VUxUjtnr8fJ' + N'1'), 2);
-*/
 PRINT N'Creating or altering procedure ''EditUser''';
 CREATE OR ALTER PROCEDURE Administration.EditUser
 	@user_json nvarchar(max),

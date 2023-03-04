@@ -16,6 +16,15 @@ BEGIN
 		@password_hash nvarchar(128) = Convert(nvarchar(128), HashBytes('SHA2_512', N'woTdzTfu5VUxUjtnr8fJ' + N'seed'), 2),
 		@user_json nvarchar(max);
 	
+	-- IDs of the roles.
+	DECLARE
+		@administrator_id smallint,
+		@manager_id smallint,
+		@worker_id smallint;
+	SELECT @administrator_id = r.ID FROM Administration.[Role] r WHERE r.Name = N'Администратор';
+	SELECT @manager_id = r.ID FROM Administration.[Role] r WHERE r.Name = N'Руководитель';
+	SELECT @worker_id = r.ID FROM Administration.[Role] r WHERE r.Name = N'Специалист';
+	
 	-- Authenticate to be able to call stored procedures to simplify inserts.
 	EXEC Auth.Authenticate
 		@login_name = N'seed',
@@ -30,6 +39,7 @@ BEGIN
 			"FullName": "Архипова Василиса",
 			"LoginName": "ceo",
 			"PasswordHash": "' + Convert(nvarchar(128), HashBytes('sha2_512', N'woTdzTfu5VUxUjtnr8fJ' + '1'), 2) + '",
+			"Roles": [' + CONVERT(nvarchar(6), @administrator_id) + N', ' + CONVERT(nvarchar(6), @manager_id) + N', ' + CONVERT(nvarchar(6), @worker_id) + N'],
 			"Description": "Директор"
 		}';
 		EXEC Administration.AddUser
@@ -44,40 +54,13 @@ BEGIN
 			"FullName": "Волкова София",
 			"LoginName": "sa",
 			"PasswordHash": "' + Convert(nvarchar(128), HashBytes('sha2_512', N'woTdzTfu5VUxUjtnr8fJ' + '2'), 2) + '",
+			"Roles": [' + CONVERT(nvarchar(6), @administrator_id) + N', ' + CONVERT(nvarchar(6), @manager_id) + N', ' + CONVERT(nvarchar(6), @worker_id) + N'],
 			"Description": "Системный администратор"
 		}';
 		EXEC Administration.AddUser
 			@user_json = @user_json,
 			@token = @token;
 	END
-	
-	-- IDs of the roles.
-	DECLARE
-		@administrator_id smallint,
-		@manager_id smallint,
-		@worker_id smallint;
-	SELECT @administrator_id = r.ID FROM Administration.[Role] r WHERE r.Name = N'Администратор';
-	SELECT @manager_id = r.ID FROM Administration.[Role] r WHERE r.Name = N'Руководитель';
-	SELECT @worker_id = r.ID FROM Administration.[Role] r WHERE r.Name = N'Специалист';
-	
-	-- ID of the director.
-	DECLARE @ceo_id smallint;
-	SELECT @ceo_id = u.ID FROM Administration.[User] u WHERE u.LoginName = N'ceo';
-
-	-- Granting the director the Administrator role.
-	IF NOT EXISTS(SELECT 1 FROM Administration.UserRole ur WHERE ur.UserID = @ceo_id AND ur.RoleID = @administrator_id)
-		INSERT INTO Administration.UserRole (UserID, RoleID, CreatedBy, UpdatedBy)
-		VALUES (@ceo_id, @administrator_id, @seed_id, @seed_id);
-
-	-- Granting the director the Manager role.
-	IF NOT EXISTS(SELECT 1 FROM Administration.UserRole ur WHERE ur.UserID = @ceo_id AND ur.RoleID = @manager_id)
-		INSERT INTO Administration.UserRole (UserID, RoleID, CreatedBy, UpdatedBy)
-		VALUES (@ceo_id, @manager_id, @seed_id, @seed_id);
-
-	-- Granting the director the Worker role.
-	IF NOT EXISTS(SELECT 1 FROM Administration.UserRole ur WHERE ur.UserID = @ceo_id AND ur.RoleID = @worker_id)
-		INSERT INTO Administration.UserRole (UserID, RoleID, CreatedBy, UpdatedBy)
-		VALUES (@ceo_id, @worker_id, @seed_id, @seed_id);
 	
 	-- Log out user with login 'seed'.
 	EXEC Auth.LogOut @token = @token;
