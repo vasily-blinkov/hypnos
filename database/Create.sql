@@ -14,17 +14,61 @@ GO
 
 USE [Hypnos];
 
--- To prevent unauthorized access to data in the tables, I create a role allowing only to execute stored procedures.
-IF DATABASE_PRINCIPAL_ID('executor') IS NULL
+-- To prevent unauthorized access to data in the tables, I create a database role allowing only to execute stored procedures.
+/*
+drop role executor;
+*/
+IF NOT EXISTS (SELECT 1 FROM sys.database_principals p WHERE p.name = N'db_executor' AND p.[type] = N'R')
 BEGIN
-	PRINT N'Setting up role ''executor''.';
-	CREATE ROLE executor;
-	GRANT EXECUTE TO executor;
+	PRINT N'Setting up database role ''db_executor''.';
+	CREATE ROLE db_executor;
+	GRANT EXECUTE TO db_executor;
 END
 
--- TODO: CREATE LOGIN executor WITH PASSWORD = N'Ver$1l0Ff';
--- TODO: CREATE USER executor FOR LOGIN executor;
--- TODO: connectionString="Persist Security Info=False;User ID=executor;Password=Ver$1l0Ff;Initial Catalog=Hypnos;Server=localhost;"
+-- Creating a server login.
+/*
+SELECT name FROM sys.server_principals;
+drop login executor;
+*/
+IF NOT EXISTS (SELECT 1 FROM sys.server_principals p WHERE p.name = N'executor' AND p.[type] = N'S')
+BEGIN
+	PRINT N'Creating server login ''executor''';
+	CREATE LOGIN executor WITH PASSWORD = N'Ver$1l0Ff';
+END
+
+-- Creating a new user 'executor' for the server login 'executor'.
+/*
+select suser_id('executor');
+select user_id('db_executor');
+drop user executor;
+*/
+IF NOT EXISTS (SELECT 1 FROM sys.database_principals p WHERE p.name = N'executor' AND p.[type] = N'S')
+BEGIN
+	PRINT N'Creating database user ''executor''';
+	CREATE USER executor FOR LOGIN executor;
+END
+
+-- Assigning role executor to user executor.
+/*
+-- Below is a cool query to select roles of the specified user or users in the specified role.
+select r.name role_name, m.name member_name from sys.database_role_members rm
+	left join sys.database_principals r on rm.role_principal_id = r.principal_id and r.type_desc = N'DATABASE_ROLE'
+	left join sys.database_principals m on rm.member_principal_id = m.principal_id and m.type_desc = N'SQL_USER'
+	where m.name = N'executor' -- filter roles by the DB user
+	and
+	--where
+	r.name = N'db_executor' -- filter users by the DB role
+;
+alter role db_executor drop member executor;
+*/
+IF NOT EXISTS (SELECT 1 FROM sys.database_role_members rm
+	LEFT JOIN sys.database_principals r ON rm.role_principal_id = r.principal_id AND r.type_desc = N'DATABASE_ROLE'
+	LEFT JOIN sys.database_principals m ON rm.member_principal_id = m.principal_id AND m.type_desc = N'SQL_USER'
+	WHERE r.name = N'db_executor' AND m.name = N'executor')
+BEGIN
+	PRINT N'Adding user ''executor'' to role ''db_executor''';
+	ALTER ROLE db_executor ADD MEMBER executor;
+END
 
 -- Data Type: Name.
 IF TYPE_ID('dbo.Name') IS NULL
@@ -241,13 +285,7 @@ GO
 
 -- Procedure: Hypnos.Auth.Authenticate.
 /*
-DECLARE @password_hash nvarchar(128) = Convert(nvarchar(128), HashBytes('SHA2_512', N'woTdzTfu5VUxUjtnr8fJ' + N'2'), 2),
-	@token nvarchar(128),
-	@user_id smallint;
-EXEC Auth.Authenticate @login_name = N'sa1', @password_hash = @password_hash, @token = @token OUTPUT, @user_id = @user_id OUTPUT;
-PRINT N'
-User ID: ' + IIF(@user_id IS NULL, N'<not found>', Convert(nvarchar(6), @user_id)) + N'
-Token: ' + ISNULL(@token, N'<unauthorized>');
+DECLARE @password_hash nvarchar(128) = Convert(nvarchar(128), HashBytes('SHA2_512', N'woTdzTfu5VUxUjtnr8fJ' + N'2'), 2); DECLARE @token nvarchar(128); DECLARE @user_id smallint; EXEC Auth.Authenticate @login_name = N'sa1', @password_hash = @password_hash, @token = @token OUTPUT, @user_id = @user_id OUTPUT; PRINT N'Token: ' + ISNULL(@token, N'<unauthorized>');
 */
 PRINT N'Creating or altering procedure ''Authenticate''';
 CREATE OR ALTER PROCEDURE Auth.Authenticate 
