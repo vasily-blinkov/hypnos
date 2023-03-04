@@ -97,6 +97,11 @@ namespace Hypnos.Desktop.Forms
         /// </returns>
         private short? GetSelectedUserID(int rowIndex)
         {
+            if (rowIndex < 0)
+            {
+                return null; // nothing selected
+            }
+
             var idValue = usersGrid.Rows[rowIndex].Cells[nameof(UserForGrid.ID)].Value;
 
             return short.TryParse(idValue != null ? idValue.ToString() : string.Empty, out var userID)
