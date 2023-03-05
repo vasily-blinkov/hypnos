@@ -474,6 +474,17 @@ AS BEGIN
 		SELECT j.ID, j.FullName, j.LoginName, j.Description, j.PasswordHash
 		FROM OpenJson(@user_json)
 		WITH (ID smallint, FullName Name, LoginName Name, Description Description, PasswordHash nvarchar(128)) AS j;
+	-- ID of the user to edit.
+	DECLARE @id smallint;
+	SELECT @id = u.ID FROM @changes u;
+	-- Validate input data.
+	IF NOT EXISTS (SELECT 1 FROM Administration.[User] u WHERE u.ID = @id)
+	BEGIN
+		DECLARE @error nvarchar(100) = N'Редактирование не выполнено, так как пользователь с ID = "'
+			+ IIF(@id IS NULL, N'(не указан)', CONVERT(nvarchar(6), @id))
+			+ N'" не существует';
+		THROW 53000, @error, 1;
+	END	
 	-- Current user ID.
 	DECLARE @user_id smallint;
 	SELECT @user_id = s.UserID FROM Auth.[Session] s WHERE s.Token = @token;
@@ -487,7 +498,7 @@ AS BEGIN
 			UpdatedBy = @user_id,
 			UpdatedDate = GetDate()
 		FROM @changes AS json
-		WHERE Administration.[User].ID = json.ID;
+		WHERE Administration.[User].ID = @id;
 END
 GO
 
