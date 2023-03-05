@@ -468,21 +468,25 @@ CREATE OR ALTER PROCEDURE Administration.EditUser
 	@token nvarchar(128)
 AS BEGIN
 	EXEC Auth.ValidateToken @token = @token;
+	-- Parsing input JSON.
+	DECLARE @changes TABLE(ID smallint, FullName Name, LoginName Name, Description Description, PasswordHash nvarchar(128));
+	INSERT @changes(ID, FullName, LoginName, Description, PasswordHash)
+		SELECT j.ID, j.FullName, j.LoginName, j.Description, j.PasswordHash
+		FROM OpenJson(@user_json)
+		WITH (ID smallint, FullName Name, LoginName Name, Description Description, PasswordHash nvarchar(128)) AS j;
+	-- Current user ID.
 	DECLARE @user_id smallint;
 	SELECT @user_id = s.UserID FROM Auth.[Session] s WHERE s.Token = @token;
+	-- Updating the user.
 	UPDATE Administration.[User]
 		SET
-			FullName = ISNULL(json.FullName, Administration.[User].FullName),
-			LoginName = ISNULL(json.LoginName, Administration.[User].LoginName),
+			FullName = IIF(TRIM(ISNULL(json.FullName, N'')) = N'', Administration.[User].FullName, json.FullName),
+			LoginName = IIF(TRIM(ISNULL(json.LoginName, N'')) = N'', Administration.[User].LoginName, json.LoginName),
 			Description = ISNULL(json.Description, Administration.[User].Description),
-			PasswordHash = ISNULL(json.PasswordHash, Administration.[User].PasswordHash),
+			PasswordHash = IIF(TRIM(ISNULL(json.PasswordHash, N'')) = N'', Administration.[User].PasswordHash, json.PasswordHash),
 			UpdatedBy = @user_id,
 			UpdatedDate = GetDate()
-		FROM (
-			SELECT j.ID, j.FullName, j.LoginName, j.Description, j.PasswordHash
-			FROM OpenJson(@user_json)
-			WITH (ID smallint, FullName Name, LoginName Name, Description Description, PasswordHash nvarchar(128)) AS j
-		) AS json
+		FROM @changes AS json
 		WHERE Administration.[User].ID = json.ID;
 END
 GO

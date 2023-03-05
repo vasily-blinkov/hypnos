@@ -102,26 +102,52 @@ USE master;
 USE Hypnos;
 
 -- Auth.Authenticate.
-DECLARE @password_hash nvarchar(128) = Convert(nvarchar(128), HashBytes('SHA2_512', N'woTdzTfu5VUxUjtnr8fJ' + N'1'), 2),
+DECLARE @password_hash nvarchar(128) = Convert(nvarchar(128), HashBytes('SHA2_512', N'woTdzTfu5VUxUjtnr8fJ' + N'seed'), 2),
 	@token nvarchar(128),
 	@user_id smallint;
-EXEC Auth.Authenticate @login_name = N'ceo', @password_hash = @password_hash, @token = @token OUTPUT, @user_id = @user_id OUTPUT;
+EXEC Auth.Authenticate @login_name = N'seed', @password_hash = @password_hash, @token = @token OUTPUT, @user_id = @user_id OUTPUT;
 PRINT N'
 User ID: ' + IIF(@user_id IS NULL, N'<not found>', Convert(nvarchar(6), @user_id)) + N'
 Token: ' + ISNULL(@token, N'<unauthorized>');
 
 -- Update.
--- PasswordHash' + Convert(nvarchar(128), HashBytes('SHA2_512', N'woTdzTfu5VUxUjtnr8fJ' + N'2'), 2) + N'
+-- "PasswordHash": "' + Convert(nvarchar(128), HashBytes('SHA2_512', N'woTdzTfu5VUxUjtnr8fJ' + N'1'), 2) + N'"
 DECLARE @user_json nvarchar(max) = N'{
-	"ID": -32667,
-	"FullName": ""
+	"ID": -32661
 }';
 EXEC Administration.EditUser
 	@user_json = @user_json,
-	@token = N'BDB35CFDE19D9558B2AEB36741B5198F318066719278BE001B6885D4ED83A48E5307EE385072A0F98597E4917B9956A5B35D52AC3E29C08CA469AB3099BBD575';
+	@token = N'835A453F002CD7B92D1C0531BB2C31A730FA3807B81C88A25843916C594B7BD1C61F77BC3847B92748C2D45F16103A59DBC7A0E92158F3D85B0CDDA55934ECE9';
+
+select u.passwordhash from Administration.[User] u WHERE u.LoginName = 'sa';
+
+-- Get single user.
+DECLARE @user_id smallint;
+SELECT @user_id = u.ID FROM Administration.[User] u WHERE u.LoginName = N'sa';
+EXEC Administration.GetSignleUser
+	@user_id = @user_id,
+	@token = N'835A453F002CD7B92D1C0531BB2C31A730FA3807B81C88A25843916C594B7BD1C61F77BC3847B92748C2D45F16103A59DBC7A0E92158F3D85B0CDDA55934ECE9';
 
 -- See the user.
-SELECT u.FullName from Administration.[User] u WHERE u.LoginName = 'sa';
+SELECT * from sys.time_zone_info;
+select SYSDATETIME() at time zone 'UTC' at time zone 'Russian Standard Time'; 
+SELECT u.LoginName, u.ID, u.FullName,
+	u.UpdatedDate at time zone 'UTC' at time zone 'Russian Standard Time', -- 2023-03-05 15:27:19.97 +03:00,
+	u2.FullName UpdatedBy
+	from Administration.[User] u
+	left join Administration.[User] u2 on u2.ID = u.UpdatedBy
+ 	WHERE u.LoginName = 'sa';
+
+-- IIF
+with changes as (
+SELECT 'sa' as LoginName, 1 id
+UNION SELECT '' as LoginName, 2 id
+union select null as LoginName, 3 id
+union select ' ' AS LoginName, 4 id
+)
+	select c.id, IIF(TRIM(ISNULL(c.LoginName, N'')) = N'', '<empty>', c.LoginName), '['+c.LoginName+']'
+	from changes c
+	order by c.id;
 
 -- Update from JSON prototype query.
 UPDATE Administration.[User]
