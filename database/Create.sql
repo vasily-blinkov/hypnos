@@ -461,7 +461,7 @@ AS BEGIN
 END
 GO
 
--- Procedure: Hypnos.Administration.UpdateUser
+-- Procedure: Hypnos.Administration.EditUser
 PRINT N'Creating or altering procedure ''EditUser''';
 CREATE OR ALTER PROCEDURE Administration.EditUser
 	@user_json nvarchar(max),
@@ -469,11 +469,11 @@ CREATE OR ALTER PROCEDURE Administration.EditUser
 AS BEGIN
 	EXEC Auth.ValidateToken @token = @token;
 	-- Parsing input JSON.
-	DECLARE @changes TABLE(ID smallint, FullName Name, LoginName Name, Description Description, PasswordHash nvarchar(128));
-	INSERT @changes(ID, FullName, LoginName, Description, PasswordHash)
-		SELECT j.ID, j.FullName, j.LoginName, j.Description, j.PasswordHash
+	DECLARE @changes TABLE(ID smallint, FullName Name, LoginName Name, Description Description, PasswordHash nvarchar(128), Roles nvarchar(max));
+	INSERT @changes(ID, FullName, LoginName, Description, PasswordHash, Roles)
+		SELECT j.ID, j.FullName, j.LoginName, j.Description, j.PasswordHash, j.Roles
 		FROM OpenJson(@user_json)
-		WITH (ID smallint, FullName Name, LoginName Name, Description Description, PasswordHash nvarchar(128)) AS j;
+		WITH (ID smallint, FullName Name, LoginName Name, Description Description, PasswordHash nvarchar(128), Roles nvarchar(max) AS JSON) AS j;
 	-- ID of the user to edit.
 	DECLARE @id smallint;
 	SELECT @id = u.ID FROM @changes u;
@@ -499,6 +499,13 @@ AS BEGIN
 			UpdatedDate = GetDate()
 		FROM @changes AS json
 		WHERE Administration.[User].ID = @id;
+	-- Removing roles.
+	DECLARE @roles TABLE(ID smallint);
+	DECLARE @roles_json nvarchar(max);
+	SELECT @roles_json = c.Roles FROM @changes c;
+	INSERT @roles (ID) SELECT r.value FROM OpenJson(@roles_json) r;
+	DELETE Administration.UserRole
+		WHERE Administration.UserRole.UserID = @id AND NOT EXISTS (SELECT 1 FROM @roles r WHERE r.ID = Administration.UserRole.RoleID);
 END
 GO
 

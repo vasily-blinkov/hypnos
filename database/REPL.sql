@@ -171,3 +171,48 @@ UPDATE Administration.[User]
 	) AS json
 	WHERE Administration.[User].ID = json.ID;
 SELECT Convert(nvarchar(128), HashBytes('SHA2_512', N'woTdzTfu5VUxUjtnr8fJ' + N'1'), 2);
+
+-- Edit roles.
+DECLARE @user_json nvarchar(max) = N'{ "ID": -32565, "Roles": [-32768] }';
+DECLARE @changes table (id smallint, roles nvarchar(max));
+declare @id smallint;
+declare @roles_json nvarchar(max);
+declare @roles table (ID smallint);
+insert @changes (id, roles) select j.id, j.roles from openjson(@user_json) with (ID smallint, Roles nvarchar(max) as json) j;
+select @id = c.id from @changes c;
+select @roles_json = c.Roles from @changes c;
+--print 'Roles JSON: ' + @roles_json;
+insert @roles (ID) select r.value ID from OpenJson(@roles_json) r;
+--select r.id from @roles r; -- IDs of roles to NOT revoke
+-- Roles to delete:
+/*select r.name from Administration.[Role] r left join Administration.UserRole ur on ur.RoleID = r.ID
+	WHERE ur.UserID = @id AND not EXISTS (SELECT 1 from @roles j WHERE j.ID = ur.RoleID);*/
+select ur.userid, ur.roleid from -- DELETE
+	Administration.UserRole ur
+	where ur.userid = @id and not exists (select 1 from @roles r where r.id = ur.roleid);
+--select c.id, c.roles from @changes c;
+
+-- WTF?
+select r.value id from openjson('[-1]') r
+
+-- Remove a couple of roles.
+EXEC Administration.EditUser
+	@user_json = '{"ID": -32565, "Roles": [-32768]}',
+	@token = N'C9B34C80786008A834B32526567749FAC0CEBCC8B2AB25891159CBA9B2A3E5658226490DD081801BE2C14EA4CA8D3311560D2DA4A3D47E7BAC2C60BF8DEEDEEA';
+
+-- Roles of a user.
+select ur.roleid, r.name, ur.UserID
+	from Administration.UserRole ur
+	left join Administration.[User] u on u.ID = ur.UserID
+	left join Administration.[Role] r on r.ID = ur.RoleID 
+	WHERE u.LoginName = 'ceo';
+
+declare @table table (x smallint);
+insert @table (x)
+	select -1 union
+	select 0 union
+	select 1;
+delete @table
+	select 0 union
+	select 1;
+select t.x r from @table t;
