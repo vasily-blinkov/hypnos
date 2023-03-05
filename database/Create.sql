@@ -433,19 +433,27 @@ CREATE OR ALTER PROCEDURE Administration.AddUser
 	@token nvarchar(128)
 AS BEGIN
 	EXEC Auth.ValidateToken @token = @token;
+	-- Parse input JSON.
+	DECLARE @new_user TABLE(FullName Name, LoginName Name, PasswordHash nvarchar(128), Description Description);
+	INSERT @new_user (FullName, LoginName, PasswordHash, Description)
+		SELECT j.FullName, j.LoginName, j.PasswordHash, j.Description
+		FROM OpenJson(@user_json)
+		WITH (FullName Name, LoginName Name, PasswordHash nvarchar(128), Description Description) AS j;
+	-- Validating inserting user.
+	IF EXISTS (SELECT 1 FROM @new_user u WHERE ISNULL(u.LoginName, N'') = N'' OR ISNULL(u.FullName, N'') = N'' OR ISNULL(u.PasswordHash, N'') = N'')
+		THROW 52000, N'Не указано значение одного из обязательных для создания нового ползователя полей, таких как: логин, ФИО, пароль', 1;
 	-- Current user ID.
 	DECLARE @user_id smallint;
 	SELECT @user_id = s.UserID FROM Auth.[Session] s WHERE s.Token = @token;
 	-- Inserting a user.
-	DECLARE @user TABLE(ID smallint);
+	DECLARE @inserted_user TABLE(ID smallint);
 	INSERT Administration.[User] (FullName, LoginName, PasswordHash, Description, CreatedBy, UpdatedBy)
-		OUTPUT INSERTED.ID INTO @user
+		OUTPUT INSERTED.ID INTO @inserted_user
 		SELECT j.FullName, j.LoginName, j.PasswordHash, j.Description, @user_id CreatedBy, @user_id UpdatedBy
-		FROM OpenJson(@user_json)
-		WITH (FullName Name, LoginName Name, PasswordHash nvarchar(128), Description Description) AS j
+		FROM @new_user j;
 	-- Inserted user ID.
 	DECLARE @new_id smallint;
-	SELECT @new_id = u.ID FROM @user u;
+	SELECT @new_id = u.ID FROM @inserted_user u;
 	-- Inserting roles.
 	INSERT Administration.UserRole (UserID, RoleID, CreatedBy, UpdatedBy)
 		SELECT @new_id, j.value, @user_id, @user_id

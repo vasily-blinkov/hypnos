@@ -21,42 +21,53 @@ use hypnos;
 	"FullName": "Волкова София",
 	"PasswordHash": "' + Convert(nvarchar(128), HashBytes('sha2_512', N'woTdzTfu5VUxUjtnr8fJ' + '3'), 2) + N'",
 	"Description": "Системный администратор",
-	"Roles": ["Администратор", "Руководитель", "Специалист"]
+	"Roles": [-32768, -32767, -32766],
 */
 DECLARE @user_json nvarchar(max) = N'{
 	"LoginName": "sa",
 	"FullName": "Волкова София",
-	"PasswordHash": "' + Convert(nvarchar(128), HashBytes('sha2_512', N'woTdzTfu5VUxUjtnr8fJ' + '3'), 2) + N'",
-	"Roles": [-32768, -32767],
-	"Description": "Системный администратор"
+	"Description": "Системный администратор",
+	"Roles": [-32768, -32767, -32766],
+	"PasswordHash": "' + Convert(nvarchar(128), HashBytes('sha2_512', N'woTdzTfu5VUxUjtnr8fJ' + '3'), 2) + N'"
 }';
 EXEC Administration.AddUser
 	@user_json = @user_json,
-	@token = N'133DB25060284E7826FA469551FC3182BC91D2B8C8C8C460E059BF95DEEE36B2EB6E8B9D8953E419EC282171B800783C9F412B902962547C28E36F257339DA35';
+	@token = N'BDB35CFDE19D9558B2AEB36741B5198F318066719278BE001B6885D4ED83A48E5307EE385072A0F98597E4917B9956A5B35D52AC3E29C08CA469AB3099BBD575';
 
 -- Select all roles for a specific user.
 select u.LoginName, r.name
 	from Administration.UserRole ur
 	left join Administration.[User] u on ur.UserID = u.ID
 	left JOIN Administration.[Role] r on ur.RoleID = r.ID
-	WHERE u.LoginName = 'seed';
+	WHERE u.LoginName = 'sa';
+
+-- Select a specific user.
+select u.id, u.fullname, u.CreatedBy, u.CreatedDate, u.UpdatedBy, u.UpdatedDate, u.IsDeleted, u.Description, u.LoginName
+	from Administration.[User] u WHERE u.LoginName = 'sa';
 
 -- Drop a user.
-DELETE FROM Administration.UserRole WHERE UserID = (SELECT u.id from Administration.[User] u WHERE u.LoginName = 'ceo');
-DELETE FROM Administration.[User] WHERE LoginName = N'ceo';
+DELETE FROM Administration.UserRole WHERE UserID = (SELECT u.id from Administration.[User] u WHERE u.LoginName = 'sa');
+DELETE FROM Administration.[User] WHERE LoginName = N'sa';
 
 -- Select from JSON slim example.
+-- PasswordHash' + Convert(nvarchar(128), HashBytes('sha2_512', N'woTdzTfu5VUxUjtnr8fJ' + '2'), 2) + '
 DECLARE @user_json nvarchar(MAX) = N'{
 	"FullName": "Волкова София",
 	"LoginName": "sa",
-	"PasswordHash": "' + Convert(nvarchar(128), HashBytes('sha2_512', N'woTdzTfu5VUxUjtnr8fJ' + '2'), 2) + '",
 	"Description": "Системный администратор",
 	"Roles": [-32768, -32767, -32766]
 }';
-DECLARE @roles_json nvarchar(MAX);
-SELECT j.FullName, j.LoginName, j.PasswordHash, j.Description, -32768 CreatedBy
+SELECT 1
 	FROM OpenJson(@user_json)
-	WITH (FullName Name, LoginName Name, PasswordHash nvarchar(128), Description Description) AS j;
+	WITH (FullName Name, LoginName Name, PasswordHash nvarchar(128), Description Description) AS j
+	WHERE ISNULL(j.LoginName, N'') = N'' OR ISNULL(j.FullName, N'') = N'' OR ISNULL(j.PasswordHash, N'') = N'';
+
+SELECT isnull(NULL, 'yes')
+
+-- Insert into a table variable
+declare @table table(id smallint);
+insert into @table(id) values(-1);
+select t.id from @table t;
 
 -- Roles.
 select r.id, r.name from Administration.[Role] r;
@@ -90,7 +101,7 @@ USE master;
 -- Switch to the database under development.
 USE Hypnos;
 
--- Authenticate.
+-- Auth.Authenticate.
 DECLARE @password_hash nvarchar(128) = Convert(nvarchar(128), HashBytes('SHA2_512', N'woTdzTfu5VUxUjtnr8fJ' + N'1'), 2),
 	@token nvarchar(128),
 	@user_id smallint;
@@ -102,14 +113,15 @@ Token: ' + ISNULL(@token, N'<unauthorized>');
 -- Update.
 -- PasswordHash' + Convert(nvarchar(128), HashBytes('SHA2_512', N'woTdzTfu5VUxUjtnr8fJ' + N'2'), 2) + N'
 DECLARE @user_json nvarchar(max) = N'{
-	"ID": -32766,
-	"LoginName": "sa",
-	"Description": "Сисадминша",
-	"FullName": "Волкова София"
+	"ID": -32667,
+	"FullName": ""
 }';
 EXEC Administration.EditUser
 	@user_json = @user_json,
-	@token = N'E3E7A825F4C14F4370683E2DC44C3F6D823C118C691909567A56A9039BD298A92978749F793739C47B54D63B0BBAE75A6BDF6B80C5A6A42C0D9DCCC6FBCFF75A';
+	@token = N'BDB35CFDE19D9558B2AEB36741B5198F318066719278BE001B6885D4ED83A48E5307EE385072A0F98597E4917B9956A5B35D52AC3E29C08CA469AB3099BBD575';
+
+-- See the user.
+SELECT u.FullName from Administration.[User] u WHERE u.LoginName = 'sa';
 
 -- Update from JSON prototype query.
 UPDATE Administration.[User]
