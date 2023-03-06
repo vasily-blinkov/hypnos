@@ -469,6 +469,7 @@ PRINT N'Creating or altering procedure '''EditUserRoles'';
 CREATE OR ALTER PROCEDURE Administration.EditUserRoles
 	@roles_json nvarchar(max),
 	@editing_user_id smallint, -- ID of the user we trying to edit
+	@current_user_id smallint, -- Previously obtained by the @token ID of the current user (to eliminate excessive request to the sessions table)
 	@token nvarchar(128)
 AS BEGIN
 	EXEC Auth.ValidateToken @token = @token;
@@ -478,8 +479,10 @@ AS BEGIN
 		DECLARE @roles TABLE(ID smallint);
 		INSERT @roles (ID) SELECT r.value FROM OpenJson(@roles_json) r;
 		-- Mark revoked roles as deleted.
-		UPDATE Administration.UserRole SET Administration.UserRole.IsDeleted = 1
-			WHERE Administration.UserRole.UserID = @editing_user_id AND NOT EXISTS (SELECT 1 FROM @roles r WHERE r.ID = Administration.UserRole.RoleID);
+		UPDATE Administration.UserRole SET IsDeleted = 1, UpdatedBy = @current_user_id, UpdatedDate = GETDATE()
+			WHERE Administration.UserRole.UserID = @editing_user_id
+			AND Administration.UserRole.IsDeleted = 0
+			AND NOT EXISTS (SELECT 1 FROM @roles r WHERE r.ID = Administration.UserRole.RoleID);
 	END
 END
 GO
@@ -524,7 +527,7 @@ AS BEGIN
 			-- Editing roles.
 			DECLARE @roles_json nvarchar(max);
 			SELECT @roles_json = c.Roles FROM @changes c;
-			EXEC Administration.EditUserRoles @roles_json = @roles_json, @editing_user_id = @id, @token = @token;
+			EXEC Administration.EditUserRoles @roles_json = @roles_json, @editing_user_id = @id, @current_user_id = @user_id, @token = @token;
 		COMMIT
 	END TRY
 	BEGIN CATCH

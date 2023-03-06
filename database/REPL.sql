@@ -156,30 +156,34 @@ else
 -- get user roles
 select u.id from Administration.[User] u where u.LoginName = 'ustl'; -- -32666
 EXEC Administration.GetRoles
-	@user_id = -32666,
+	@user_id = -32665,
 	@token = N'5F2790A26DF1EB94142259DF852B1F6B0670FBCA595405AFD026C8500FAF77B1ADC01CA3471A72352E5F26BD95F7696671553339999E09BDBD20A5473ACF1FA4';
-select ur.userid, ur.roleid, ur.isdeleted from Administration.UserRole ur where ur.UserID = -32666;
+
+-- -32768	2023-03-06 17:08:41.270
+-- -32767	2023-03-06 17:20:59.590
+-- -32768	2023-03-06 17:24:18.247
+select ur.userid, ur.roleid, ur.isdeleted, ur.UpdatedBy, ur.UpdatedDate from Administration.UserRole ur where ur.UserID = -32665;
 
 -- get all roles.
 EXEC Administration.GetRoles
 	@token = N'5F2790A26DF1EB94142259DF852B1F6B0670FBCA595405AFD026C8500FAF77B1ADC01CA3471A72352E5F26BD95F7696671553339999E09BDBD20A5473ACF1FA4';
 
 -- Auth.Authenticate.
-DECLARE @password_hash nvarchar(128) = Convert(nvarchar(128), HashBytes('SHA2_512', N'woTdzTfu5VUxUjtnr8fJ' + N'seed'), 2),
+DECLARE @password_hash nvarchar(128) = Convert(nvarchar(128), HashBytes('SHA2_512', N'woTdzTfu5VUxUjtnr8fJ' + N'1'), 2),
 	@token nvarchar(128),
 	@user_id smallint;
-EXEC Auth.Authenticate @login_name = N'seed', @password_hash = @password_hash, @token = @token OUTPUT, @user_id = @user_id OUTPUT;
+EXEC Auth.Authenticate @login_name = N'ceo', @password_hash = @password_hash, @token = @token OUTPUT, @user_id = @user_id OUTPUT;
 PRINT N'
 User ID: ' + IIF(@user_id IS NULL, N'<not found>', Convert(nvarchar(6), @user_id)) + N'
 Token: ' + ISNULL(@token, N'<unauthorized>');
 
 -- Create.
 DECLARE @user_json nvarchar(max) = N'{
-	"LoginName": "ustl",
-	"FullName": "Белова Ирина",
-	"Description": "Лидер команды поддержки пользователей",
+	"LoginName": "usspec",
+	"FullName": "Семёнова София",
+	"Description": "Специалист команды поддержки пользователей",
 	"Roles": [-32768, -32767, -32766],
-	"PasswordHash": "' + Convert(nvarchar(128), HashBytes('sha2_512', N'woTdzTfu5VUxUjtnr8fJ' + '7'), 2) + N'"
+	"PasswordHash": "' + Convert(nvarchar(128), HashBytes('sha2_512', N'woTdzTfu5VUxUjtnr8fJ' + '8'), 2) + N'"
 }';
 EXEC Administration.AddUser
 	@user_json = @user_json,
@@ -188,11 +192,12 @@ EXEC Administration.AddUser
 -- Update.
 -- "PasswordHash": "' + Convert(nvarchar(128), HashBytes('SHA2_512', N'woTdzTfu5VUxUjtnr8fJ' + N'1'), 2) + N'"
 DECLARE @user_json nvarchar(max) = N'{
-	"ID": -32667
+	"ID": -32665,
+	"Roles": [-32767, -32766]
 }';
 EXEC Administration.EditUser
 	@user_json = @user_json,
-	@token = N'5F2790A26DF1EB94142259DF852B1F6B0670FBCA595405AFD026C8500FAF77B1ADC01CA3471A72352E5F26BD95F7696671553339999E09BDBD20A5473ACF1FA4';
+	@token = N'17FAF44582F90CFFF5A312EAA6E511DA7BC0C6E9BEC1C2A71B4E1BF4C581FF8A3EE79812E571FFED547D5C57DB721EFCCB01A3F57821E5DF74A02846C39C417E';
 
 declare @change table(id smallint);
 insert @change (id) values (null);
@@ -207,10 +212,10 @@ select u.id, u.FullName from Administration.[User] u WHERE u.LoginName = 'osba';
 
 -- Get single user.
 DECLARE @user_id smallint;
-SELECT @user_id = u.ID FROM Administration.[User] u WHERE u.LoginName = N'sa';
+SELECT @user_id = u.ID FROM Administration.[User] u WHERE u.LoginName = N'ustl';
 EXEC Administration.GetSignleUser
 	@user_id = @user_id,
-	@token = N'835A453F002CD7B92D1C0531BB2C31A730FA3807B81C88A25843916C594B7BD1C61F77BC3847B92748C2D45F16103A59DBC7A0E92158F3D85B0CDDA55934ECE9';
+	@token = N'5F2790A26DF1EB94142259DF852B1F6B0670FBCA595405AFD026C8500FAF77B1ADC01CA3471A72352E5F26BD95F7696671553339999E09BDBD20A5473ACF1FA4';
 
 -- See the user.
 SELECT * from sys.time_zone_info;
