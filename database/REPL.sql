@@ -129,12 +129,12 @@ Token: ' + ISNULL(@token, N'<unauthorized>');
 -- Update.
 -- "PasswordHash": "' + Convert(nvarchar(128), HashBytes('SHA2_512', N'woTdzTfu5VUxUjtnr8fJ' + N'1'), 2) + N'"
 DECLARE @user_json nvarchar(max) = N'{
-	"ID": -32565,
-	"FullName": "София Волкова"
+	"ID": -32765,
+	"FullName": "Ева Окулова"
 }';
 EXEC Administration.EditUser
 	@user_json = @user_json,
-	@token = N'835A453F002CD7B92D1C0531BB2C31A730FA3807B81C88A25843916C594B7BD1C61F77BC3847B92748C2D45F16103A59DBC7A0E92158F3D85B0CDDA55934ECE9';
+	@token = N'108F8F31030FE9B6AF40D93520DBCE79D02316934E9D4490FE712B7967AFACDD3F80390ECC24A40668057BF43CF32BAF0E425429E3A26CF75B5ABF390F6395F8';
 
 declare @change table(id smallint);
 insert @change (id) values (null);
@@ -144,7 +144,8 @@ with [user] as (select -1 id)
 declare @error nvarchar(MAX) = 'error' + convert(nvarchar(2), -1);
 throw 53000, @error, 1;
 
-select u.passwordhash from Administration.[User] u WHERE u.id = -32661;
+-- Inspect a user.
+select u.id, u.FullName from Administration.[User] u WHERE u.LoginName = 'osba';
 
 -- Get single user.
 DECLARE @user_id smallint;

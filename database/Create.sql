@@ -464,8 +464,10 @@ AS BEGIN
 	END TRY
 	BEGIN CATCH
 		IF @@TRANCOUNT > 0
+		BEGIN
 			ROLLBACK;
-			THROW
+			THROW;
+		END
 	END CATCH
 END
 GO
@@ -497,24 +499,35 @@ AS BEGIN
 	-- Current user ID.
 	DECLARE @user_id smallint;
 	SELECT @user_id = s.UserID FROM Auth.[Session] s WHERE s.Token = @token;
-	-- Updating the user.
-	UPDATE Administration.[User]
-		SET
-			FullName = IIF(TRIM(ISNULL(json.FullName, N'')) = N'', Administration.[User].FullName, json.FullName),
-			LoginName = IIF(TRIM(ISNULL(json.LoginName, N'')) = N'', Administration.[User].LoginName, json.LoginName),
-			Description = ISNULL(json.Description, Administration.[User].Description),
-			PasswordHash = IIF(TRIM(ISNULL(json.PasswordHash, N'')) = N'', Administration.[User].PasswordHash, json.PasswordHash),
-			UpdatedBy = @user_id,
-			UpdatedDate = GetDate()
-		FROM @changes AS json
-		WHERE Administration.[User].ID = @id;
-	-- Removing roles.
-	DECLARE @roles TABLE(ID smallint);
-	DECLARE @roles_json nvarchar(max);
-	SELECT @roles_json = c.Roles FROM @changes c;
-	INSERT @roles (ID) SELECT r.value FROM OpenJson(@roles_json) r;
-	DELETE Administration.UserRole
-		WHERE Administration.UserRole.UserID = @id AND NOT EXISTS (SELECT 1 FROM @roles r WHERE r.ID = Administration.UserRole.RoleID);
+	BEGIN TRY
+		BEGIN TRANSACTION
+			-- Updating the user.
+			UPDATE Administration.[User]
+				SET
+					FullName = IIF(TRIM(ISNULL(json.FullName, N'')) = N'', Administration.[User].FullName, json.FullName),
+					LoginName = IIF(TRIM(ISNULL(json.LoginName, N'')) = N'', Administration.[User].LoginName, json.LoginName),
+					Description = ISNULL(json.Description, Administration.[User].Description),
+					PasswordHash = IIF(TRIM(ISNULL(json.PasswordHash, N'')) = N'', Administration.[User].PasswordHash, json.PasswordHash),
+					UpdatedBy = @user_id,
+					UpdatedDate = GetDate()
+				FROM @changes AS json
+				WHERE Administration.[User].ID = @id;
+			-- Removing roles.
+			DECLARE @roles TABLE(ID smallint);
+			DECLARE @roles_json nvarchar(max);
+			SELECT @roles_json = c.Roles FROM @changes c;
+			INSERT @roles (ID) SELECT r.value FROM OpenJson(@roles_json) r;
+			DELETE Administration.UserRole
+				WHERE Administration.UserRole.UserID = @id AND NOT EXISTS (SELECT 1 FROM @roles r WHERE r.ID = Administration.UserRole.RoleID);
+		COMMIT
+	END TRY
+	BEGIN CATCH
+		IF @@TRANCOUNT > 0
+		BEGIN
+			ROLLBACK;
+			THROW
+		END
+	END CATCH
 END
 GO
 
