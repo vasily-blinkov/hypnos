@@ -117,12 +117,48 @@ USE master;
 -- Switch to the database under development.
 USE Hypnos;
 
+-- Multiple variables declaration prohibited.
+DECLARE @roles TABLE(ID smallint); @roles_json nvarchar(max);
+
+-- Passed
+declare @changes table (Roles nvarchar(max));
+insert @changes (Roles) select r.Roles from openjson('{"Roles": [-2, -4]}') with(Roles nvarchar(max) as json) r;
+select c.Roles from @changes c;
+declare @roles_json nvarchar(max);
+select @roles_json = c.Roles from @changes c;
+if @roles_json is not null
+	print 'Roles: ' + @roles_json;
+else
+	print 'Roles are NULL';
+
+-- []
+declare @changes table (Roles nvarchar(max));
+insert @changes (Roles) select r.Roles from openjson('{"Roles": []}') with(Roles nvarchar(max) as json) r;
+select c.Roles from @changes c;
+declare @roles_json nvarchar(max);
+select @roles_json = c.Roles from @changes c;
+if @roles_json is not null
+	print 'Roles: ' + @roles_json;
+else
+	print 'Roles are NULL';
+
+-- NULL
+declare @changes table (Roles nvarchar(max), ID smallint);
+insert @changes (Roles, ID) select r.Roles, r.ID from openjson('{"ID": -2}') with(ID smallint, Roles nvarchar(max) as json) r;
+select c.Roles, c.ID from @changes c;
+declare @roles_json nvarchar(max);
+select @roles_json = c.Roles from @changes c;
+if @roles_json is not null
+	print 'Roles: ' + @roles_json;
+else
+	print 'Roles are NULL';
+
 -- get user roles
-select u.id from Administration.[User] u where u.LoginName = 'osqa'; -- -32667
+select u.id from Administration.[User] u where u.LoginName = 'ustl'; -- -32666
 EXEC Administration.GetRoles
-	@user_id = -32667,
+	@user_id = -32666,
 	@token = N'5F2790A26DF1EB94142259DF852B1F6B0670FBCA595405AFD026C8500FAF77B1ADC01CA3471A72352E5F26BD95F7696671553339999E09BDBD20A5473ACF1FA4';
-select ur.userid, ur.roleid, ur.isdeleted from Administration.UserRole ur where ur.UserID = -32667;
+select ur.userid, ur.roleid, ur.isdeleted from Administration.UserRole ur where ur.UserID = -32666;
 
 -- get all roles.
 EXEC Administration.GetRoles
@@ -139,11 +175,11 @@ Token: ' + ISNULL(@token, N'<unauthorized>');
 
 -- Create.
 DECLARE @user_json nvarchar(max) = N'{
-	"LoginName": "osqa",
-	"FullName": "Яшина Анна",
-	"Description": "Тестировщик команды аутсорсинга",
+	"LoginName": "ustl",
+	"FullName": "Белова Ирина",
+	"Description": "Лидер команды поддержки пользователей",
 	"Roles": [-32768, -32767, -32766],
-	"PasswordHash": "' + Convert(nvarchar(128), HashBytes('sha2_512', N'woTdzTfu5VUxUjtnr8fJ' + '6'), 2) + N'"
+	"PasswordHash": "' + Convert(nvarchar(128), HashBytes('sha2_512', N'woTdzTfu5VUxUjtnr8fJ' + '7'), 2) + N'"
 }';
 EXEC Administration.AddUser
 	@user_json = @user_json,
@@ -152,8 +188,7 @@ EXEC Administration.AddUser
 -- Update.
 -- "PasswordHash": "' + Convert(nvarchar(128), HashBytes('SHA2_512', N'woTdzTfu5VUxUjtnr8fJ' + N'1'), 2) + N'"
 DECLARE @user_json nvarchar(max) = N'{
-	"ID": -32667,
-	"Roles": [-32768]
+	"ID": -32667
 }';
 EXEC Administration.EditUser
 	@user_json = @user_json,

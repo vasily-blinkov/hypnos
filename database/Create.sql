@@ -464,6 +464,26 @@ AS BEGIN
 END
 GO
 
+-- (INTERNAL USAGE ONLY) Procedue: Hypnos.Administration.EditUserRoles
+PRINT N'Creating or altering procedure '''EditUserRoles'';
+CREATE OR ALTER PROCEDURE Administration.EditUserRoles
+	@roles_json nvarchar(max),
+	@editing_user_id smallint, -- ID of the user we trying to edit
+	@token nvarchar(128)
+AS BEGIN
+	EXEC Auth.ValidateToken @token = @token;
+	IF @roles_json IS NOT NULL
+	BEGIN
+		-- Parse roles.
+		DECLARE @roles TABLE(ID smallint);
+		INSERT @roles (ID) SELECT r.value FROM OpenJson(@roles_json) r;
+		-- Mark revoked roles as deleted.
+		UPDATE Administration.UserRole SET Administration.UserRole.IsDeleted = 1
+			WHERE Administration.UserRole.UserID = @editing_user_id AND NOT EXISTS (SELECT 1 FROM @roles r WHERE r.ID = Administration.UserRole.RoleID);
+	END
+END
+GO
+
 -- Procedure: Hypnos.Administration.EditUser
 PRINT N'Creating or altering procedure ''EditUser''';
 CREATE OR ALTER PROCEDURE Administration.EditUser
@@ -474,8 +494,7 @@ AS BEGIN
 	-- Parsing input JSON.
 	DECLARE @changes TABLE(ID smallint, FullName Name, LoginName Name, Description Description, PasswordHash nvarchar(128), Roles nvarchar(max));
 	INSERT @changes(ID, FullName, LoginName, Description, PasswordHash, Roles)
-		SELECT j.ID, j.FullName, j.LoginName, j.Description, j.PasswordHash, j.Roles
-		FROM OpenJson(@user_json)
+		SELECT j.ID, j.FullName, j.LoginName, j.Description, j.PasswordHash, j.Roles FROM OpenJson(@user_json)
 		WITH (ID smallint, FullName Name, LoginName Name, Description Description, PasswordHash nvarchar(128), Roles nvarchar(max) AS JSON) AS j;
 	-- ID of the user to edit.
 	DECLARE @id smallint;
@@ -494,31 +513,25 @@ AS BEGIN
 	BEGIN TRY
 		BEGIN TRANSACTION
 			-- Updating the user.
-			UPDATE Administration.[User]
-				SET
-					FullName = IIF(TRIM(ISNULL(json.FullName, N'')) = N'', Administration.[User].FullName, json.FullName),
-					LoginName = IIF(TRIM(ISNULL(json.LoginName, N'')) = N'', Administration.[User].LoginName, json.LoginName),
-					Description = ISNULL(json.Description, Administration.[User].Description),
-					PasswordHash = IIF(TRIM(ISNULL(json.PasswordHash, N'')) = N'', Administration.[User].PasswordHash, json.PasswordHash),
-					UpdatedBy = @user_id,
-					UpdatedDate = GetDate()
-				FROM @changes AS json
-				WHERE Administration.[User].ID = @id;
-			-- Removing roles.
-			DECLARE @roles TABLE(ID smallint);
+			UPDATE Administration.[User] SET
+				FullName = IIF(TRIM(ISNULL(json.FullName, N'')) = N'', Administration.[User].FullName, json.FullName),
+				LoginName = IIF(TRIM(ISNULL(json.LoginName, N'')) = N'', Administration.[User].LoginName, json.LoginName),
+				Description = ISNULL(json.Description, Administration.[User].Description),
+				PasswordHash = IIF(TRIM(ISNULL(json.PasswordHash, N'')) = N'', Administration.[User].PasswordHash, json.PasswordHash),
+				UpdatedBy = @user_id,
+				UpdatedDate = GetDate()
+			FROM @changes AS json WHERE Administration.[User].ID = @id;
+			-- Editing roles.
 			DECLARE @roles_json nvarchar(max);
 			SELECT @roles_json = c.Roles FROM @changes c;
-			INSERT @roles (ID) SELECT r.value FROM OpenJson(@roles_json) r;
-			UPDATE Administration.UserRole
-				SET Administration.UserRole.IsDeleted = 1
-				WHERE Administration.UserRole.UserID = @id AND NOT EXISTS (SELECT 1 FROM @roles r WHERE r.ID = Administration.UserRole.RoleID);
+			EXEC Administration.EditUserRoles @roles_json = @roles_json, @editing_user_id = @id, @token = @token;
 		COMMIT
 	END TRY
 	BEGIN CATCH
 		IF @@TRANCOUNT > 0
 		BEGIN
 			ROLLBACK;
-			THROW
+			THROW;
 		END
 	END CATCH
 END
