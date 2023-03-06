@@ -117,6 +117,17 @@ USE master;
 -- Switch to the database under development.
 USE Hypnos;
 
+-- get user roles
+select u.id from Administration.[User] u where u.LoginName = 'osqa'; -- -32667
+EXEC Administration.GetRoles
+	@user_id = -32667,
+	@token = N'5F2790A26DF1EB94142259DF852B1F6B0670FBCA595405AFD026C8500FAF77B1ADC01CA3471A72352E5F26BD95F7696671553339999E09BDBD20A5473ACF1FA4';
+select ur.userid, ur.roleid, ur.isdeleted from Administration.UserRole ur where ur.UserID = -32667; 
+
+-- get all roles.
+EXEC Administration.GetRoles
+	@token = N'5F2790A26DF1EB94142259DF852B1F6B0670FBCA595405AFD026C8500FAF77B1ADC01CA3471A72352E5F26BD95F7696671553339999E09BDBD20A5473ACF1FA4';
+
 -- Auth.Authenticate.
 DECLARE @password_hash nvarchar(128) = Convert(nvarchar(128), HashBytes('SHA2_512', N'woTdzTfu5VUxUjtnr8fJ' + N'seed'), 2),
 	@token nvarchar(128),
@@ -126,15 +137,27 @@ PRINT N'
 User ID: ' + IIF(@user_id IS NULL, N'<not found>', Convert(nvarchar(6), @user_id)) + N'
 Token: ' + ISNULL(@token, N'<unauthorized>');
 
+-- Create.
+DECLARE @user_json nvarchar(max) = N'{
+	"LoginName": "osqa",
+	"FullName": "Яшина Анна",
+	"Description": "Тестировщик команды аутсорсинга",
+	"Roles": [-32768, -32767, -32766],
+	"PasswordHash": "' + Convert(nvarchar(128), HashBytes('sha2_512', N'woTdzTfu5VUxUjtnr8fJ' + '6'), 2) + N'"
+}';
+EXEC Administration.AddUser
+	@user_json = @user_json,
+	@token = N'5F2790A26DF1EB94142259DF852B1F6B0670FBCA595405AFD026C8500FAF77B1ADC01CA3471A72352E5F26BD95F7696671553339999E09BDBD20A5473ACF1FA4';
+
 -- Update.
 -- "PasswordHash": "' + Convert(nvarchar(128), HashBytes('SHA2_512', N'woTdzTfu5VUxUjtnr8fJ' + N'1'), 2) + N'"
 DECLARE @user_json nvarchar(max) = N'{
-	"ID": -32765,
-	"FullName": "Ева Окулова"
+	"ID": -32667,
+	"Roles": [-32768]
 }';
 EXEC Administration.EditUser
 	@user_json = @user_json,
-	@token = N'108F8F31030FE9B6AF40D93520DBCE79D02316934E9D4490FE712B7967AFACDD3F80390ECC24A40668057BF43CF32BAF0E425429E3A26CF75B5ABF390F6395F8';
+	@token = N'5F2790A26DF1EB94142259DF852B1F6B0670FBCA595405AFD026C8500FAF77B1ADC01CA3471A72352E5F26BD95F7696671553339999E09BDBD20A5473ACF1FA4';
 
 declare @change table(id smallint);
 insert @change (id) values (null);

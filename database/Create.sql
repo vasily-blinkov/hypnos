@@ -353,14 +353,6 @@ END
 GO
 
 -- Procedure: Hypnos.Administration.GetRoles.
-/*
-EXEC Administration.GetRoles
-	@token = N'948A9634B3539AA83D0C22195614BC8F115B54908CC5A582911798C6D2E7B2656459657AE4FC0D0179DA6EEA5A258BD3E3C97D616895DF5C889FCD3C75143253';
-EXEC Administration.GetRoles
-	--@user_id = -32768,
-	@user_id = -32767,
-	@token = N'948A9634B3539AA83D0C22195614BC8F115B54908CC5A582911798C6D2E7B2656459657AE4FC0D0179DA6EEA5A258BD3E3C97D616895DF5C889FCD3C75143253';
-*/
 PRINT N'Creating or altering procedure ''GetRoles''';
 CREATE OR ALTER PROCEDURE Administration.GetRoles
 	@user_id smallint = NULL,
@@ -517,7 +509,8 @@ AS BEGIN
 			DECLARE @roles_json nvarchar(max);
 			SELECT @roles_json = c.Roles FROM @changes c;
 			INSERT @roles (ID) SELECT r.value FROM OpenJson(@roles_json) r;
-			DELETE Administration.UserRole
+			UPDATE Administration.UserRole
+				SET Administration.UserRole.IsDeleted = 1
 				WHERE Administration.UserRole.UserID = @id AND NOT EXISTS (SELECT 1 FROM @roles r WHERE r.ID = Administration.UserRole.RoleID);
 		COMMIT
 	END TRY
