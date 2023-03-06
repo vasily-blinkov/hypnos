@@ -16,6 +16,9 @@ EXEC Auth.CleanupSessions;
 use master;
 use hypnos;
 
+-- All users.
+select u.FullName from Administration.[User] u;
+
 -- Auth.Authenticate.
 DECLARE @password_hash nvarchar(128) = Convert(nvarchar(128), HashBytes('SHA2_512', N'woTdzTfu5VUxUjtnr8fJ' + N'seed'), 2),
 	@token nvarchar(128),
@@ -154,36 +157,36 @@ else
 	print 'Roles are NULL';
 
 -- get user roles
-select u.id from Administration.[User] u where u.LoginName = 'ustl'; -- -32666
+select u.id from Administration.[User] u where u.LoginName = 'sa'; -- -32766
 EXEC Administration.GetRoles
-	@user_id = -32665,
-	@token = N'5F2790A26DF1EB94142259DF852B1F6B0670FBCA595405AFD026C8500FAF77B1ADC01CA3471A72352E5F26BD95F7696671553339999E09BDBD20A5473ACF1FA4';
+	@user_id = -32767,
+	@token = N'7FCE468EB9B6EF73C5FAEFBE274A8C51B9734D88257D9383D23BB5BBCF3B85EEC1C8DAD4A311A47EED68DA083A93B63E450E5F2C9F11991FAD876378A3B2F758';
 
 -- -32768	2023-03-06 17:08:41.270
 -- -32767	2023-03-06 17:20:59.590
 -- -32768	2023-03-06 17:24:18.247
-select ur.userid, ur.roleid, ur.isdeleted, ur.UpdatedBy, ur.UpdatedDate from Administration.UserRole ur where ur.UserID = -32665;
+select ur.userid, ur.roleid, ur.isdeleted, ur.UpdatedBy, ur.UpdatedDate from Administration.UserRole ur where ur.UserID = -32664;
 
 -- get all roles.
 EXEC Administration.GetRoles
 	@token = N'5F2790A26DF1EB94142259DF852B1F6B0670FBCA595405AFD026C8500FAF77B1ADC01CA3471A72352E5F26BD95F7696671553339999E09BDBD20A5473ACF1FA4';
 
 -- Auth.Authenticate.
-DECLARE @password_hash nvarchar(128) = Convert(nvarchar(128), HashBytes('SHA2_512', N'woTdzTfu5VUxUjtnr8fJ' + N'1'), 2),
+DECLARE @password_hash nvarchar(128) = Convert(nvarchar(128), HashBytes('SHA2_512', N'woTdzTfu5VUxUjtnr8fJ' + N'seed'), 2),
 	@token nvarchar(128),
 	@user_id smallint;
-EXEC Auth.Authenticate @login_name = N'ceo', @password_hash = @password_hash, @token = @token OUTPUT, @user_id = @user_id OUTPUT;
+EXEC Auth.Authenticate @login_name = N'seed', @password_hash = @password_hash, @token = @token OUTPUT, @user_id = @user_id OUTPUT;
 PRINT N'
 User ID: ' + IIF(@user_id IS NULL, N'<not found>', Convert(nvarchar(6), @user_id)) + N'
 Token: ' + ISNULL(@token, N'<unauthorized>');
 
 -- Create.
+-- "Roles": [-32768, -32767, -32766],
 DECLARE @user_json nvarchar(max) = N'{
-	"LoginName": "usspec",
-	"FullName": "Семёнова София",
-	"Description": "Специалист команды поддержки пользователей",
-	"Roles": [-32768, -32767, -32766],
-	"PasswordHash": "' + Convert(nvarchar(128), HashBytes('sha2_512', N'woTdzTfu5VUxUjtnr8fJ' + '8'), 2) + N'"
+	"LoginName": "iii",
+	"FullName": "Иванов Иван Иванович",
+	"Roles": [-32768],
+	"PasswordHash": "' + Convert(nvarchar(128), HashBytes('sha2_512', N'woTdzTfu5VUxUjtnr8fJ' + '-2'), 2) + N'"
 }';
 EXEC Administration.AddUser
 	@user_json = @user_json,
@@ -192,7 +195,7 @@ EXEC Administration.AddUser
 -- Update.
 -- "PasswordHash": "' + Convert(nvarchar(128), HashBytes('SHA2_512', N'woTdzTfu5VUxUjtnr8fJ' + N'1'), 2) + N'"
 DECLARE @user_json nvarchar(max) = N'{
-	"ID": -32665,
+	"ID": -32664,
 	"Roles": [-32767, -32766]
 }';
 EXEC Administration.EditUser

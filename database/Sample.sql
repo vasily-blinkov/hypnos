@@ -38,7 +38,7 @@ BEGIN
 		SET @user_json = N'{
 			"FullName": "Архипова Василиса",
 			"LoginName": "ceo",
-			"PasswordHash": "' + Convert(nvarchar(128), HashBytes('sha2_512', N'woTdzTfu5VUxUjtnr8fJ' + '1'), 2) + '",
+			"PasswordHash": "' + CONVERT(nvarchar(128), HashBytes('sha2_512', N'woTdzTfu5VUxUjtnr8fJ' + '1'), 2) + '",
 			"Roles": [' + CONVERT(nvarchar(6), @administrator_id) + N', ' + CONVERT(nvarchar(6), @manager_id) + N', ' + CONVERT(nvarchar(6), @worker_id) + N'],
 			"Description": "Директор"
 		}';
@@ -50,14 +50,24 @@ BEGIN
 	-- Adding the system administrator.
 	IF NOT EXISTS(SELECT 1 FROM Administration.[User] u WHERE u.LoginName = N'sa')
 	BEGIN
+		-- Create a user.
 		SET @user_json = N'{
 			"FullName": "Волкова София",
 			"LoginName": "sa",
 			"PasswordHash": "' + Convert(nvarchar(128), HashBytes('sha2_512', N'woTdzTfu5VUxUjtnr8fJ' + '2'), 2) + '",
-			"Roles": [' + CONVERT(nvarchar(6), @administrator_id) + N', ' + CONVERT(nvarchar(6), @manager_id) + N', ' + CONVERT(nvarchar(6), @worker_id) + N'],
 			"Description": "Системный администратор"
 		}';
 		EXEC Administration.AddUser
+			@user_json = @user_json,
+			@token = @token;
+		
+		-- Assign roles.
+		SELECT @user_id = u.ID FROM Administration.[User] u WHERE u.LoginName = N'sa';
+		SET @user_json = N'{
+			"ID": ' + CONVERT(nvarchar(6), @user_id) + N',
+			"Roles": [' + CONVERT(nvarchar(6), @administrator_id) + N', ' + CONVERT(nvarchar(6), @manager_id) + N', ' + CONVERT(nvarchar(6), @worker_id) + N']
+		}';
+		EXEC Administration.EditUser
 			@user_json = @user_json,
 			@token = @token;
 	END

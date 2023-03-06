@@ -465,7 +465,7 @@ END
 GO
 
 -- (INTERNAL USAGE ONLY) Procedue: Hypnos.Administration.EditUserRoles
-PRINT N'Creating or altering procedure '''EditUserRoles'';
+PRINT N'Creating or altering procedure ''EditUserRoles''';
 CREATE OR ALTER PROCEDURE Administration.EditUserRoles
 	@roles_json nvarchar(max),
 	@editing_user_id smallint, -- ID of the user we trying to edit
@@ -478,11 +478,16 @@ AS BEGIN
 		-- Parse roles.
 		DECLARE @roles TABLE(ID smallint);
 		INSERT @roles (ID) SELECT r.value FROM OpenJson(@roles_json) r;
-		-- Mark revoked roles as deleted.
+		-- Revoke roles.
 		UPDATE Administration.UserRole SET IsDeleted = 1, UpdatedBy = @current_user_id, UpdatedDate = GETDATE()
 			WHERE Administration.UserRole.UserID = @editing_user_id
 			AND Administration.UserRole.IsDeleted = 0
 			AND NOT EXISTS (SELECT 1 FROM @roles r WHERE r.ID = Administration.UserRole.RoleID);
+		-- Insert roles.
+		INSERT Administration.UserRole (UserID, RoleID, CreatedBy, UpdatedBy)
+			SELECT @editing_user_id, r.ID, @current_user_id, @current_user_id FROM @roles r
+			WHERE NOT EXISTS(SELECT 1 FROM Administration.UserRole ur WHERE ur.UserID = @editing_user_id AND ur.RoleID = r.ID);
+		-- TODO: Undelete roles.
 	END
 END
 GO
