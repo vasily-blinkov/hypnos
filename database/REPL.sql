@@ -16,6 +16,15 @@ EXEC Auth.CleanupSessions;
 use master;
 use hypnos;
 
+-- Auth.Authenticate.
+DECLARE @password_hash nvarchar(128) = Convert(nvarchar(128), HashBytes('SHA2_512', N'woTdzTfu5VUxUjtnr8fJ' + N'seed'), 2),
+	@token nvarchar(128),
+	@user_id smallint;
+EXEC Auth.Authenticate @login_name = N'seed', @password_hash = @password_hash, @token = @token OUTPUT, @user_id = @user_id OUTPUT;
+PRINT N'
+User ID: ' + IIF(@user_id IS NULL, N'<not found>', Convert(nvarchar(6), @user_id)) + N'
+Token: ' + ISNULL(@token, N'<unauthorized>');
+
 /*
 	"LoginName": "sa",
 	"FullName": "Волкова София",
@@ -24,15 +33,15 @@ use hypnos;
 	"Roles": [-32768, -32767, -32766],
 */
 DECLARE @user_json nvarchar(max) = N'{
-	"LoginName": "sa",
-	"FullName": "Волкова София",
-	"Description": "Системный администратор",
-	"Roles": [-32768, -32767, -32766],
-	"PasswordHash": "' + Convert(nvarchar(128), HashBytes('sha2_512', N'woTdzTfu5VUxUjtnr8fJ' + '3'), 2) + N'"
+	"LoginName": "osdev",
+	"FullName": "Панов Всеволод",
+	"Description": "Разработчик команды аутсорсинга",
+	"Roles": [-32766],
+	"PasswordHash": "' + Convert(nvarchar(128), HashBytes('sha2_512', N'woTdzTfu5VUxUjtnr8fJ' + '4'), 2) + N'"
 }';
 EXEC Administration.AddUser
 	@user_json = @user_json,
-	@token = N'835A453F002CD7B92D1C0531BB2C31A730FA3807B81C88A25843916C594B7BD1C61F77BC3847B92748C2D45F16103A59DBC7A0E92158F3D85B0CDDA55934ECE9';
+	@token = N'108F8F31030FE9B6AF40D93520DBCE79D02316934E9D4490FE712B7967AFACDD3F80390ECC24A40668057BF43CF32BAF0E425429E3A26CF75B5ABF390F6395F8';
 
 -- Select all roles for a specific user.
 select u.LoginName, r.name
@@ -43,7 +52,7 @@ select u.LoginName, r.name
 
 -- Select a specific user.
 select u.id, u.fullname, u.CreatedBy, u.CreatedDate, u.UpdatedBy, u.UpdatedDate, u.IsDeleted, u.Description, u.LoginName
-	from Administration.[User] u WHERE u.LoginName = 'sa';
+	from Administration.[User] u WHERE u.LoginName = 'osdev';
 
 -- Drop a user.
 DELETE FROM Administration.UserRole WHERE UserID = (SELECT u.id from Administration.[User] u WHERE u.LoginName = 'sa');
@@ -91,7 +100,11 @@ SELECT j.[Array] FROM OpenJson(N'{"Array": ["Администратор", "Ру�
 SELECT J.value FROM OpenJson(N'{"Array": [1, 2, 3]}', N'$.Array') j;
 
 -- Select an added user.
-SELECT u.ID, u.LoginName, u.FullName, u.Description FROM Administration.[User] u WHERE u.LoginName = N'sa';
+SELECT u.ID, u.FullName, u.CreatedBy,
+	u.CreatedDate at time zone 'UTC' at time zone 'Russian Standard Time',
+	u.UpdatedBy,
+	u.UpdatedDate at time zone 'UTC' at time zone 'Russian Standard Time'
+	FROM Administration.[User] u WHERE u.LoginName = N'sa';
 
 
 /*

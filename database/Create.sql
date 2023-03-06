@@ -447,17 +447,26 @@ AS BEGIN
 	SELECT @user_id = s.UserID FROM Auth.[Session] s WHERE s.Token = @token;
 	-- Inserting a user.
 	DECLARE @inserted_user TABLE(ID smallint);
-	INSERT Administration.[User] (FullName, LoginName, PasswordHash, Description, CreatedBy, UpdatedBy)
-		OUTPUT INSERTED.ID INTO @inserted_user
-		SELECT j.FullName, j.LoginName, j.PasswordHash, j.Description, @user_id CreatedBy, @user_id UpdatedBy
-		FROM @new_user j;
-	-- Inserted user ID.
-	DECLARE @new_id smallint;
-	SELECT @new_id = u.ID FROM @inserted_user u;
-	-- Inserting roles.
-	INSERT Administration.UserRole (UserID, RoleID, CreatedBy, UpdatedBy)
-		SELECT @new_id, j.value, @user_id, @user_id
-		FROM OpenJson(@user_json, N'$.Roles') j;
+	BEGIN TRY
+		BEGIN TRANSACTION
+			INSERT Administration.[User] (FullName, LoginName, PasswordHash, Description, CreatedBy, UpdatedBy)
+				OUTPUT INSERTED.ID INTO @inserted_user
+				SELECT j.FullName, j.LoginName, j.PasswordHash, j.Description, @user_id CreatedBy, @user_id UpdatedBy
+				FROM @new_user j;
+			-- Inserted user ID.
+			DECLARE @new_id smallint;
+			SELECT @new_id = u.ID FROM @inserted_user u;
+			-- Inserting roles.
+			INSERT Administration.UserRole (UserID, RoleID, CreatedBy, UpdatedBy)
+				SELECT @new_id, j.value, @user_id, @user_id
+				FROM OpenJson(@user_json, N'$.Roles') j;
+		COMMIT;
+	END TRY
+	BEGIN CATCH
+		IF @@TRANCOUNT > 0
+			ROLLBACK;
+			THROW
+	END CATCH
 END
 GO
 
