@@ -365,7 +365,7 @@ AS BEGIN
 		SELECT ur.RoleID ID, r.Name Name, r.Description Description
 		FROM Administration.UserRole ur
 		JOIN Administration.Role r ON r.ID = ur.RoleID
-		WHERE ur.UserID = @user_id AND r.IsDeleted = 0;
+		WHERE ur.UserID = @user_id AND r.IsDeleted = 0 AND ur.IsDeleted = 0;
 	ELSE
 		-- Select all roles available.
 	SELECT r.ID ID, r.Name Name, r.Description Description

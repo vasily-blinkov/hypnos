@@ -122,7 +122,7 @@ select u.id from Administration.[User] u where u.LoginName = 'osqa'; -- -32667
 EXEC Administration.GetRoles
 	@user_id = -32667,
 	@token = N'5F2790A26DF1EB94142259DF852B1F6B0670FBCA595405AFD026C8500FAF77B1ADC01CA3471A72352E5F26BD95F7696671553339999E09BDBD20A5473ACF1FA4';
-select ur.userid, ur.roleid, ur.isdeleted from Administration.UserRole ur where ur.UserID = -32667; 
+select ur.userid, ur.roleid, ur.isdeleted from Administration.UserRole ur where ur.UserID = -32667;
 
 -- get all roles.
 EXEC Administration.GetRoles
