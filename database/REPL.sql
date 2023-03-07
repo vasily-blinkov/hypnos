@@ -159,17 +159,13 @@ else
 -- get user roles
 select u.id from Administration.[User] u where u.LoginName = 'sa'; -- -32766
 EXEC Administration.GetRoles
-	@user_id = -32767,
-	@token = N'7FCE468EB9B6EF73C5FAEFBE274A8C51B9734D88257D9383D23BB5BBCF3B85EEC1C8DAD4A311A47EED68DA083A93B63E450E5F2C9F11991FAD876378A3B2F758';
+	@user_id = -32766,
+	@token = N'6181AD114499FFF5C905E4B94AB0A032DF840AD10149E5053BC0BB97B42D56BD0F3816ACC08BDFA99868D43F3C9707235865E33B2F8879D5ECCFDA9783C7D784';
 
 -- -32768	2023-03-06 17:08:41.270
 -- -32767	2023-03-06 17:20:59.590
 -- -32768	2023-03-06 17:24:18.247
-select ur.userid, ur.roleid, ur.isdeleted, ur.UpdatedBy, ur.UpdatedDate from Administration.UserRole ur where ur.UserID = -32664;
-
--- get all roles.
-EXEC Administration.GetRoles
-	@token = N'5F2790A26DF1EB94142259DF852B1F6B0670FBCA595405AFD026C8500FAF77B1ADC01CA3471A72352E5F26BD95F7696671553339999E09BDBD20A5473ACF1FA4';
+select ur.userid, ur.roleid, ur.isdeleted, ur.UpdatedBy, ur.UpdatedDate from Administration.UserRole ur where ur.UserID = -32766;
 
 -- Auth.Authenticate.
 DECLARE @password_hash nvarchar(128) = Convert(nvarchar(128), HashBytes('SHA2_512', N'woTdzTfu5VUxUjtnr8fJ' + N'seed'), 2),
@@ -180,27 +176,29 @@ PRINT N'
 User ID: ' + IIF(@user_id IS NULL, N'<not found>', Convert(nvarchar(6), @user_id)) + N'
 Token: ' + ISNULL(@token, N'<unauthorized>');
 
+-- Update.
+-- "PasswordHash": "' + Convert(nvarchar(128), HashBytes('SHA2_512', N'woTdzTfu5VUxUjtnr8fJ' + N'1'), 2) + N'"
+DECLARE @user_json nvarchar(max) = N'{
+	"ID": -32766,
+	"Roles": [-32768, -32767, -32766]
+}';
+EXEC Administration.EditUser
+	@user_json = @user_json,
+	@token = N'6181AD114499FFF5C905E4B94AB0A032DF840AD10149E5053BC0BB97B42D56BD0F3816ACC08BDFA99868D43F3C9707235865E33B2F8879D5ECCFDA9783C7D784';
+
 -- Create.
 -- "Roles": [-32768, -32767, -32766],
 DECLARE @user_json nvarchar(max) = N'{
-	"LoginName": "iii",
-	"FullName": "Иванов Иван Иванович",
-	"Roles": [-32768],
-	"PasswordHash": "' + Convert(nvarchar(128), HashBytes('sha2_512', N'woTdzTfu5VUxUjtnr8fJ' + '-2'), 2) + N'"
+	"Roles": [-32768, -32767, -32766],
+	"ID": -32766
 }';
 EXEC Administration.AddUser
 	@user_json = @user_json,
 	@token = N'5F2790A26DF1EB94142259DF852B1F6B0670FBCA595405AFD026C8500FAF77B1ADC01CA3471A72352E5F26BD95F7696671553339999E09BDBD20A5473ACF1FA4';
 
--- Update.
--- "PasswordHash": "' + Convert(nvarchar(128), HashBytes('SHA2_512', N'woTdzTfu5VUxUjtnr8fJ' + N'1'), 2) + N'"
-DECLARE @user_json nvarchar(max) = N'{
-	"ID": -32664,
-	"Roles": [-32767, -32766]
-}';
-EXEC Administration.EditUser
-	@user_json = @user_json,
-	@token = N'17FAF44582F90CFFF5A312EAA6E511DA7BC0C6E9BEC1C2A71B4E1BF4C581FF8A3EE79812E571FFED547D5C57DB721EFCCB01A3F57821E5DF74A02846C39C417E';
+-- get all roles.
+EXEC Administration.GetRoles
+	@token = N'6181AD114499FFF5C905E4B94AB0A032DF840AD10149E5053BC0BB97B42D56BD0F3816ACC08BDFA99868D43F3C9707235865E33B2F8879D5ECCFDA9783C7D784';
 
 declare @change table(id smallint);
 insert @change (id) values (null);

@@ -467,7 +467,7 @@ GO
 -- (INTERNAL USAGE ONLY) Procedue: Hypnos.Administration.EditUserRoles
 PRINT N'Creating or altering procedure ''EditUserRoles''';
 CREATE OR ALTER PROCEDURE Administration.EditUserRoles
-	@roles_json nvarchar(max),
+	@roles_json nvarchar(max), -- E.g.: [-32768, -32767, -32766]
 	@editing_user_id smallint, -- ID of the user we trying to edit
 	@current_user_id smallint, -- Previously obtained by the @token ID of the current user (to eliminate excessive request to the sessions table)
 	@token nvarchar(128)
@@ -486,8 +486,11 @@ AS BEGIN
 		-- Insert roles.
 		INSERT Administration.UserRole (UserID, RoleID, CreatedBy, UpdatedBy)
 			SELECT @editing_user_id, r.ID, @current_user_id, @current_user_id FROM @roles r
-			WHERE NOT EXISTS(SELECT 1 FROM Administration.UserRole ur WHERE ur.UserID = @editing_user_id AND ur.RoleID = r.ID);
-		-- TODO: Undelete roles.
+			WHERE NOT EXISTS (SELECT 1 FROM Administration.UserRole ur WHERE ur.UserID = @editing_user_id AND ur.RoleID = r.ID);
+		-- Undelete roles.
+		UPDATE Administration.UserRole SET IsDeleted = 0, CreatedBy = @current_user_id, CreatedDate = GETDATE(), UpdatedBy = @current_user_id, UpdatedDate = GETDATE()
+			WHERE Administration.UserRole.UserID = @editing_user_id AND Administration.UserRole.IsDeleted = 1
+			AND EXISTS (SELECT 1 FROM @roles r WHERE r.ID = Administration.UserRole.RoleID);
 	END
 END
 GO
