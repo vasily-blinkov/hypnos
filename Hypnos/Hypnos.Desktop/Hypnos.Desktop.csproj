@@ -114,6 +114,7 @@
     <Compile Include="Utils\ExceptionsUtility.cs" />
     <Compile Include="Utils\GridUtility.cs" />
     <Compile Include="Utils\HashUtility.cs" />
+    <Compile Include="Utils\ToolStripModeUtility.cs" />
     <EmbeddedResource Include="Controls\ExceptionControl.resx">
       <DependentUpon>ExceptionControl.cs</DependentUpon>
     </EmbeddedResource>

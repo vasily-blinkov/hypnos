@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Windows.Forms;
 using Hypnos.Desktop.Models.Administration;
@@ -27,7 +27,7 @@ namespace Hypnos.Desktop.Forms
 
         public void ApplyRoles()
         {
-            List<Role> rolesCollection;
+            BindingList<Role> rolesCollection;
 
             using (var repository = new AdministrationRepository())
             {

@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Windows.Forms;
 using Hypnos.Desktop.EqualityComparers;
@@ -12,12 +12,23 @@ namespace Hypnos.Desktop.Forms
 {
     public partial class UsersForm : Form
     {
+        private enum Mode { Main, Create };
+
         private short? userID;
-        private List<Role> roles;
+        private BindingList<Role> roles;
+
+        private readonly ToolStripModeUtility<Mode> modeUtility;
 
         public UsersForm()
         {
             InitializeComponent();
+            modeUtility = InitializeModes();
+        }
+
+        private ToolStripModeUtility<Mode> InitializeModes()
+        {
+            return new ToolStripModeUtility<Mode>(toolStrip)
+                .Map(Mode.Main, filterLabel, filterBox, readButton, masterDetailsSeparator, crudLabel, createButton);
         }
 
         private void Transpose(object sender, EventArgs e)
@@ -69,16 +80,22 @@ namespace Hypnos.Desktop.Forms
                 return;
             }
 
-            LoadUser(userID.Value);
+            ChangeUser(userID.Value);
         }
 
-        private void LoadUser(short userID)
+        private void ChangeUser(short userID)
         {
             if (userID == this.userID)
             {
                 return;
             }
 
+            LoadUser(userID);
+            this.userID = userID;
+        }
+
+        private void LoadUser(short userID)
+        {
             UserForDetail user;
 
             using (var repository = new AdministrationRepository())
@@ -88,8 +105,6 @@ namespace Hypnos.Desktop.Forms
 
             FillDetail(user);
             FillRoles(userID);
-
-            this.userID = userID;
         }
 
         /// <returns>
@@ -118,7 +133,7 @@ namespace Hypnos.Desktop.Forms
 
         private void FillRoles(short userID)
         {
-            List<Role> roles;
+            BindingList<Role> roles;
 
             using (var repository = new AdministrationRepository())
             {
@@ -177,5 +192,64 @@ namespace Hypnos.Desktop.Forms
             rolesBoxes.Items.Clear();
             rolesBoxes.Items.AddRange(roles.Select(r => r.Name).ToArray());
         }
+
+        private void CreateUser(object sender, EventArgs e)
+        {
+            // Add a new row to the table.
+            ((BindingList<UserForGrid>)usersGrid.DataSource).Add(new UserForGrid());
+
+            // Select the created row.
+            usersGrid.ClearSelection();
+            usersGrid.Rows[usersGrid.RowCount - 1].Selected = true;
+
+            // Clear details.
+            FillDetail(new UserForDetail());
+
+            // Change visible tool strip items.
+            modeUtility.Switch(Mode.Create);
+        }
+
+        private void CancelCreateUser()
+        {
+            modeUtility.Mode = Mode.Main;
+            ((BindingList<UserForGrid>)usersGrid.DataSource).RemoveAt(usersGrid.RowCount - 1);
+        }
+
+        private void DeleteUser(object sender, EventArgs e)
+        {
+            if (modeUtility.Mode == Mode.Create && ConfirmCancelCreateUser() == DialogResult.Yes)
+            {
+                CancelCreateUser();
+
+                // Select previously selected row.
+                if (this.userID.HasValue)
+                {
+                    SelectRow(userID.Value);
+                    LoadUser(userID.Value);
+                }
+            }
+        }
+
+        private void SelectUser(object sender, EventArgs e)
+        {
+            if (modeUtility.Mode == Mode.Create && !usersGrid.Rows[usersGrid.RowCount - 1].Selected)
+            {
+                if (ConfirmCancelCreateUser() == DialogResult.Yes) 
+                {
+                    CancelCreateUser();
+                    LoadUser(usersGrid.SelectedRows[0].Index);
+                }
+                else
+                {
+                    usersGrid.Rows[usersGrid.RowCount - 1].Selected = true;
+                }
+            }
+        }
+
+        private DialogResult ConfirmCancelCreateUser() => MessageBox.Show(
+            "Форма содержит данные, которые пока не были сохранены в базу. При продолжении без сохранения они будут безвозвратно утеряны.",
+            "Отменить создание пользователя?",
+            MessageBoxButtons.YesNo,
+            MessageBoxIcon.Question);
     }
 }

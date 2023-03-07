@@ -30,9 +30,12 @@
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(UsersForm));
             this.toolStrip = new System.Windows.Forms.ToolStrip();
+            this.filterLabel = new System.Windows.Forms.ToolStripLabel();
+            this.filterBox = new System.Windows.Forms.ToolStripTextBox();
+            this.readButton = new System.Windows.Forms.ToolStripButton();
+            this.masterDetailsSeparator = new System.Windows.Forms.ToolStripSeparator();
             this.crudLabel = new System.Windows.Forms.ToolStripLabel();
             this.createButton = new System.Windows.Forms.ToolStripButton();
-            this.readButton = new System.Windows.Forms.ToolStripButton();
             this.upsertButton = new System.Windows.Forms.ToolStripButton();
             this.deleteButton = new System.Windows.Forms.ToolStripButton();
             this.transposeButton = new System.Windows.Forms.ToolStripButton();
@@ -55,9 +58,6 @@
             this.rolesPanel = new System.Windows.Forms.Panel();
             this.rolesBoxes = new System.Windows.Forms.CheckedListBox();
             this.rolesLabel = new System.Windows.Forms.Label();
-            this.masterDetailsSeparator = new System.Windows.Forms.ToolStripSeparator();
-            this.filterLabel = new System.Windows.Forms.ToolStripLabel();
-            this.filterBox = new System.Windows.Forms.ToolStripTextBox();
             this.toolStrip.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer)).BeginInit();
             this.splitContainer.Panel1.SuspendLayout();
@@ -91,6 +91,33 @@
             this.toolStrip.TabIndex = 0;
             this.toolStrip.Text = "toolStrip1";
             // 
+            // filterLabel
+            // 
+            this.filterLabel.Name = "filterLabel";
+            this.filterLabel.Size = new System.Drawing.Size(45, 22);
+            this.filterLabel.Text = "Поиск:";
+            // 
+            // filterBox
+            // 
+            this.filterBox.Font = new System.Drawing.Font("Segoe UI", 9F);
+            this.filterBox.Name = "filterBox";
+            this.filterBox.Size = new System.Drawing.Size(100, 25);
+            // 
+            // readButton
+            // 
+            this.readButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            this.readButton.Image = ((System.Drawing.Image)(resources.GetObject("readButton.Image")));
+            this.readButton.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.readButton.Name = "readButton";
+            this.readButton.Size = new System.Drawing.Size(65, 22);
+            this.readButton.Text = "О&бновить";
+            this.readButton.Click += new System.EventHandler(this.Refresh);
+            // 
+            // masterDetailsSeparator
+            // 
+            this.masterDetailsSeparator.Name = "masterDetailsSeparator";
+            this.masterDetailsSeparator.Size = new System.Drawing.Size(6, 25);
+            // 
             // crudLabel
             // 
             this.crudLabel.Name = "crudLabel";
@@ -105,16 +132,7 @@
             this.createButton.Name = "createButton";
             this.createButton.Size = new System.Drawing.Size(54, 22);
             this.createButton.Text = "&Создать";
-            // 
-            // readButton
-            // 
-            this.readButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
-            this.readButton.Image = ((System.Drawing.Image)(resources.GetObject("readButton.Image")));
-            this.readButton.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.readButton.Name = "readButton";
-            this.readButton.Size = new System.Drawing.Size(65, 22);
-            this.readButton.Text = "О&бновить";
-            this.readButton.Click += new System.EventHandler(this.Refresh);
+            this.createButton.Click += new System.EventHandler(this.CreateUser);
             // 
             // upsertButton
             // 
@@ -133,6 +151,7 @@
             this.deleteButton.Name = "deleteButton";
             this.deleteButton.Size = new System.Drawing.Size(55, 22);
             this.deleteButton.Text = "&Удалить";
+            this.deleteButton.Click += new System.EventHandler(this.DeleteUser);
             // 
             // transposeButton
             // 
@@ -186,6 +205,7 @@
             this.usersGrid.Size = new System.Drawing.Size(176, 234);
             this.usersGrid.TabIndex = 0;
             this.usersGrid.CellClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.LoadUser);
+            this.usersGrid.SelectionChanged += new System.EventHandler(this.SelectUser);
             // 
             // tableLayoutPanel
             // 
@@ -357,23 +377,6 @@
             this.rolesLabel.Size = new System.Drawing.Size(32, 13);
             this.rolesLabel.TabIndex = 0;
             this.rolesLabel.Text = "Роли";
-            // 
-            // masterDetailsSeparator
-            // 
-            this.masterDetailsSeparator.Name = "masterDetailsSeparator";
-            this.masterDetailsSeparator.Size = new System.Drawing.Size(6, 25);
-            // 
-            // filterLabel
-            // 
-            this.filterLabel.Name = "filterLabel";
-            this.filterLabel.Size = new System.Drawing.Size(45, 22);
-            this.filterLabel.Text = "Поиск:";
-            // 
-            // filterBox
-            // 
-            this.filterBox.Font = new System.Drawing.Font("Segoe UI", 9F);
-            this.filterBox.Name = "filterBox";
-            this.filterBox.Size = new System.Drawing.Size(100, 25);
             // 
             // UsersForm
             // 

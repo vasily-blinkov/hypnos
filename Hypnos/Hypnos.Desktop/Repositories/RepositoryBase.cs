@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.ComponentModel;
 using System.Configuration;
 using System.Data;
 using System.Data.SqlClient;
@@ -52,7 +52,7 @@ namespace Hypnos.Desktop.Repositories
         /// <remarks>
         /// Adds the @token parameter to the end of the <paramref name="parameters"/>.
         /// </remarks>
-        protected List<T> ExecuteReaderAuth<T>(
+        protected BindingList<T> ExecuteReaderAuth<T>(
             string procedureName,
             Func<SqlDataReader, T> convert,
             params SqlParameter[] parameters)
@@ -66,18 +66,18 @@ namespace Hypnos.Desktop.Repositories
             return ExecuteReader(procedureName, convert, extendedParameters);
         }
 
-        protected List<T> ExecuteReader<T>(
+        protected BindingList<T> ExecuteReader<T>(
             string procedureName,
             Func<SqlDataReader, T> convert,
             params SqlParameter[] parameters)
         {
-            List<T> resultCollection = null;
+            BindingList<T> resultCollection = null;
 
             using (var command = CreateCommand(procedureName, parameters))
             {
                 using (var reader = command.ExecuteReader())
                 {
-                    resultCollection = new List<T>();
+                    resultCollection = new BindingList<T>();
 
                     while (reader.Read())
                     {

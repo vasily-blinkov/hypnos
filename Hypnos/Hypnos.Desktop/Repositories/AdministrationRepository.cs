@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+﻿using System.ComponentModel;
 using System.Data.SqlClient;
 using System.Linq;
 using Hypnos.Desktop.Converters;
@@ -15,7 +15,7 @@ namespace Hypnos.Desktop.Repositories
         /// If this is omitted, the stored procedure will return all the roles.
         /// Otherwise only for the user with the specified ID
         /// </param>
-        public List<Role> GetRoles(short? userId = null)
+        public BindingList<Role> GetRoles(short? userId = null)
         {
             SqlParameter[] parameters = userId.HasValue
                 ? new[] { new SqlParameter { ParameterName = "@user_id", Value = userId } }
@@ -24,7 +24,7 @@ namespace Hypnos.Desktop.Repositories
             return ExecuteReaderAuth("GetRoles", ConvertRole.ByDefault, parameters);
         }
 
-        public List<UserForGrid> GetUsers(string query = null)
+        public BindingList<UserForGrid> GetUsers(string query = null)
         {
             SqlParameter[] parameters = !string.IsNullOrWhiteSpace(query)
                 ? new[] { new SqlParameter { ParameterName = "@query", Value = query } }

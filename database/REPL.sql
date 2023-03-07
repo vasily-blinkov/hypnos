@@ -165,7 +165,8 @@ EXEC Administration.GetRoles
 -- -32768	2023-03-06 17:08:41.270
 -- -32767	2023-03-06 17:20:59.590
 -- -32768	2023-03-06 17:24:18.247
-select ur.userid, ur.roleid, ur.isdeleted, ur.UpdatedBy, ur.UpdatedDate from Administration.UserRole ur where ur.UserID = -32766;
+select ur.userid, ur.roleid, ur.isdeleted, ur.UpdatedBy, ur.UpdatedDate, ur.CreatedBy, ur.CreatedDate
+	from Administration.UserRole ur where ur.UserID = -32766;
 
 -- Auth.Authenticate.
 DECLARE @password_hash nvarchar(128) = Convert(nvarchar(128), HashBytes('SHA2_512', N'woTdzTfu5VUxUjtnr8fJ' + N'seed'), 2),
@@ -178,6 +179,7 @@ Token: ' + ISNULL(@token, N'<unauthorized>');
 
 -- Update.
 -- "PasswordHash": "' + Convert(nvarchar(128), HashBytes('SHA2_512', N'woTdzTfu5VUxUjtnr8fJ' + N'1'), 2) + N'"
+-- "Roles": [-32768, -32767, -32766]
 DECLARE @user_json nvarchar(max) = N'{
 	"ID": -32766,
 	"Roles": [-32768, -32767, -32766]
