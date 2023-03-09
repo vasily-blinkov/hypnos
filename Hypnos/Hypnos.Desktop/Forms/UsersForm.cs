@@ -85,11 +85,6 @@ namespace Hypnos.Desktop.Forms
 
         private void ChangeUser(short userID)
         {
-            if (userID == this.userID)
-            {
-                return;
-            }
-
             LoadUser(userID);
             this.userID = userID;
         }
@@ -129,6 +124,7 @@ namespace Hypnos.Desktop.Forms
             fullNameBox.Text = user.FullName;
             loginBox.Text = user.LoginName;
             descriptionBox.Text = user.Description;
+            passwordBox.Clear();
         }
 
         private void FillRoles(short userID)
@@ -142,7 +138,7 @@ namespace Hypnos.Desktop.Forms
 
             rolesBoxes.UncheckAll();
 
-            for (var index = 0; index < roles.Count; index++)
+            for (int index = 0; index < this.roles.Count; index++)
             {
                 if (roles.Any(r => r.ID == this.roles[index].ID))
                 {
@@ -151,7 +147,9 @@ namespace Hypnos.Desktop.Forms
             }
         }
 
-        private void Refresh(object sender, EventArgs e)
+        private void Refresh(object sender, EventArgs e) => Reload();
+
+        private void Reload()
         {
             FillGrid();
 
@@ -251,5 +249,49 @@ namespace Hypnos.Desktop.Forms
             "Отменить создание пользователя?",
             MessageBoxButtons.YesNo,
             MessageBoxIcon.Question);
+
+        private void HandleClosing(object sender, FormClosingEventArgs e)
+        {
+            if (modeUtility.Mode == Mode.Create && ConfirmCancelCreateUser() != DialogResult.Yes)
+            {
+                e.Cancel = true;
+            }
+        }
+
+        private void SaveUser(object sender, EventArgs e)
+        {
+            if (Mode.Create == modeUtility.Mode)
+            {
+                AddUser();
+            }
+            else
+            {
+                EditUser();
+            }
+        }
+
+        private void AddUser()
+        {
+            using (var repository = new AdministrationRepository())
+            {
+                repository.AddUser(ReadDetail().ToJsonString());
+            }
+
+            modeUtility.Switch(Mode.Main);
+            Reload();
+        }
+
+        private void EditUser()
+        {
+            throw new NotImplementedException();
+        }
+
+        private UserForUpsert ReadDetail() => new UserForUpsert
+        {
+            FullName = fullNameBox.Text,
+            LoginName = loginBox.Text,
+            Description = descriptionBox.Text,
+            PasswordHash = HashUtility.HashPassword(passwordBox.Text)
+        };
     }
 }

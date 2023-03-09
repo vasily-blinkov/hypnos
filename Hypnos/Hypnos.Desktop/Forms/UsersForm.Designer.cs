@@ -142,6 +142,7 @@
             this.upsertButton.Name = "upsertButton";
             this.upsertButton.Size = new System.Drawing.Size(70, 22);
             this.upsertButton.Text = "С&охранить";
+            this.upsertButton.Click += new System.EventHandler(this.SaveUser);
             // 
             // deleteButton
             // 
@@ -392,6 +393,7 @@
             this.ShowInTaskbar = false;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "Пользователи";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.HandleClosing);
             this.Load += new System.EventHandler(this.Prepare);
             this.toolStrip.ResumeLayout(false);
             this.toolStrip.PerformLayout();

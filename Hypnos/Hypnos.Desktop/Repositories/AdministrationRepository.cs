@@ -36,5 +36,9 @@ namespace Hypnos.Desktop.Repositories
         public UserForDetail GetSingleUser(short userId) => ExecuteReaderAuth("GetSignleUser", ConvertUser.ForDetail,
             new SqlParameter { ParameterName = "@user_id", Value = userId }
         ).Single();
+
+        public int AddUser(string userJson) => ExecuteCommandAuth("AddUser", new[] { new SqlParameter("@user_json", userJson) });
+
+        public int EditUser(string userJson) => ExecuteCommandAuth("EditUser", new[] { new SqlParameter("@user_json", userJson) });
     }
 }

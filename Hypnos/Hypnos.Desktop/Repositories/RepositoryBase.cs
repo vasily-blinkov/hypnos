@@ -57,13 +57,7 @@ namespace Hypnos.Desktop.Repositories
             Func<SqlDataReader, T> convert,
             params SqlParameter[] parameters)
         {
-            var length = (parameters?.Length).GetValueOrDefault();
-            var extendedParameters = new SqlParameter[length + 1];
-
-            Array.Copy(parameters, extendedParameters, length);
-            extendedParameters[extendedParameters.Length - 1] = new SqlParameter { ParameterName = "@token", Value = AuthenticationUtility.Token };
-
-            return ExecuteReader(procedureName, convert, extendedParameters);
+            return ExecuteReader(procedureName, convert, ExtendAuth(parameters));
         }
 
         protected BindingList<T> ExecuteReader<T>(
@@ -89,6 +83,23 @@ namespace Hypnos.Desktop.Repositories
             return resultCollection;
         }
 
+        protected int ExecuteCommandAuth(string procedureName, params SqlParameter[] parameters)
+        {
+            using (var command = CreateCommand(procedureName, ExtendAuth(parameters)))
+            {
+                try
+                {
+                    return command.ExecuteNonQuery();
+                }
+                catch (SqlException ex)
+                {
+                    ExceptionsUtility.Handle(ex);
+                }
+
+                return default;
+            }
+        }
+
         private SqlCommand CreateCommand(string procedureName, params SqlParameter[] parameters)
         {
             var procedurePath = $"{(!string.IsNullOrWhiteSpace(SchemaName) ? $"{SchemaName}." : string.Empty)}{procedureName}";
@@ -105,6 +116,20 @@ namespace Hypnos.Desktop.Repositories
             }
 
             return command;
+        }
+
+        /// <summary>
+        /// Extends the passed in array of SQL parameters with ones required to execute a stored procedure in the authenticated manner.
+        /// </summary>
+        private SqlParameter[] ExtendAuth(SqlParameter[] parameters)
+        {
+            var length = (parameters?.Length).GetValueOrDefault();
+            var extendedParameters = new SqlParameter[length + 1];
+
+            Array.Copy(parameters, extendedParameters, length);
+            extendedParameters[extendedParameters.Length - 1] = new SqlParameter { ParameterName = "@token", Value = AuthenticationUtility.Token };
+
+            return extendedParameters;
         }
     }
 }

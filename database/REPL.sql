@@ -17,7 +17,7 @@ use master;
 use hypnos;
 
 -- All users.
-select u.FullName from Administration.[User] u;
+select u.FullName, u.ID from Administration.[User] u;
 
 -- Auth.Authenticate.
 DECLARE @password_hash nvarchar(128) = Convert(nvarchar(128), HashBytes('SHA2_512', N'woTdzTfu5VUxUjtnr8fJ' + N'seed'), 2),
@@ -27,6 +27,12 @@ EXEC Auth.Authenticate @login_name = N'seed', @password_hash = @password_hash, @
 PRINT N'
 User ID: ' + IIF(@user_id IS NULL, N'<not found>', Convert(nvarchar(6), @user_id)) + N'
 Token: ' + ISNULL(@token, N'<unauthorized>');
+
+-- Get Roles
+select u.id from Administration.[User] u where u.LoginName = 'ostl'; -- -32766
+EXEC Administration.GetRoles
+	@user_id = -32765,
+	@token = N'722E02D15310803B856BBC408205362D754A364DB236230720BE941472E51A606AB33496E2BE006E8E79B815FF86F4FA045E33F92286ED3F47FFA28FF3856DFF';
 
 /*
 	"LoginName": "sa",
@@ -155,12 +161,6 @@ if @roles_json is not null
 	print 'Roles: ' + @roles_json;
 else
 	print 'Roles are NULL';
-
--- get user roles
-select u.id from Administration.[User] u where u.LoginName = 'sa'; -- -32766
-EXEC Administration.GetRoles
-	@user_id = -32766,
-	@token = N'6181AD114499FFF5C905E4B94AB0A032DF840AD10149E5053BC0BB97B42D56BD0F3816ACC08BDFA99868D43F3C9707235865E33B2F8879D5ECCFDA9783C7D784';
 
 -- -32768	2023-03-06 17:08:41.270
 -- -32767	2023-03-06 17:20:59.590

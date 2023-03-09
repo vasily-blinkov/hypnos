@@ -72,6 +72,21 @@ BEGIN
 			@token = @token;
 	END
 	
+	-- Adding the outsource team leader.
+	IF NOT EXISTS(SELECT 1 FROM Administration.[User] u WHERE u.LoginName = N'ostl')
+	BEGIN
+		SET @user_json = N'{
+			"FullName": "Соколова Мария",
+			"LoginName": "ostl",
+			"PasswordHash": "' + CONVERT(nvarchar(128), HashBytes('sha2_512', N'woTdzTfu5VUxUjtnr8fJ' + '3'), 2) + '",
+			"Roles": [' + CONVERT(nvarchar(6), @manager_id) + N', ' + CONVERT(nvarchar(6), @worker_id) + N'],
+			"Description": "Лидер команды аутсорсинга"
+		}';
+		EXEC Administration.AddUser
+			@user_json = @user_json,
+			@token = @token;
+	END
+	
 	-- Log out user with login 'seed'.
 	EXEC Auth.LogOut @token = @token;
 
