@@ -33,15 +33,7 @@ namespace Hypnos.Desktop.Repositories
         {
             using (var command = CreateCommand(procedureName, parameters))
             {
-                try
-                {
-                    command.ExecuteScalar();
-                }
-                catch (SqlException ex)
-                {
-                    ExceptionsUtility.Handle(ex);
-                }
-
+                command.ExecuteScalar();
                 return command.Parameters;
             }
         }
@@ -87,16 +79,7 @@ namespace Hypnos.Desktop.Repositories
         {
             using (var command = CreateCommand(procedureName, ExtendAuth(parameters)))
             {
-                try
-                {
-                    return command.ExecuteNonQuery();
-                }
-                catch (SqlException ex)
-                {
-                    ExceptionsUtility.Handle(ex);
-                }
-
-                return default;
+                return command.ExecuteNonQuery();
             }
         }
 

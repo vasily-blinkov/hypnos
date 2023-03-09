@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Data.SqlClient;
 using System.Linq;
 using System.Windows.Forms;
 using Hypnos.Desktop.EqualityComparers;
@@ -272,13 +273,37 @@ namespace Hypnos.Desktop.Forms
 
         private void AddUser()
         {
+            var userJson = ReadDetail().ToJsonString();
+
+            bool reload = true;
+            string message = string.Empty;
+
             using (var repository = new AdministrationRepository())
             {
-                repository.AddUser(ReadDetail().ToJsonString());
+                try
+                {
+                    repository.AddUser(userJson);
+                }
+                catch (SqlException ex)
+                {
+                    reload = false;
+                    message = ex.Message;
+                }
+                catch (Exception ex)
+                {
+                    ExceptionsUtility.Handle(ex);
+                }
             }
 
-            modeUtility.Switch(Mode.Main);
-            Reload();
+            if (reload)
+            {
+                modeUtility.Switch(Mode.Main);
+                Reload();
+            }
+            else
+            {
+                MessageBox.Show(message, "Пользователь не сохранен", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         private void EditUser()

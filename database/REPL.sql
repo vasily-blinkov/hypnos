@@ -17,7 +17,7 @@ use master;
 use hypnos;
 
 -- All users.
-select u.FullName, u.ID from Administration.[User] u;
+select u.FullName, u.ID, u.PasswordHash from Administration.[User] u;
 
 -- Auth.Authenticate.
 DECLARE @password_hash nvarchar(128) = Convert(nvarchar(128), HashBytes('SHA2_512', N'woTdzTfu5VUxUjtnr8fJ' + N'seed'), 2),

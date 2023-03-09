@@ -433,7 +433,7 @@ AS BEGIN
 		WITH (FullName Name, LoginName Name, PasswordHash nvarchar(128), Description Description) AS j;
 	-- Validating inserting user.
 	IF EXISTS (SELECT 1 FROM @new_user u WHERE ISNULL(u.LoginName, N'') = N'' OR ISNULL(u.FullName, N'') = N'' OR ISNULL(u.PasswordHash, N'') = N'')
-		THROW 52000, N'Не указано значение одного из обязательных для создания нового ползователя полей, таких как: логин, ФИО, пароль', 1;
+		THROW 52000, N'Не указано значение одного из обязательных для создания нового пользователя полей, таких как: логин, ФИО, пароль', 1;
 	-- Current user ID.
 	DECLARE @user_id smallint;
 	SELECT @user_id = s.UserID FROM Auth.[Session] s WHERE s.Token = @token;
